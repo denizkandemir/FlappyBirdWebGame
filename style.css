@@ -1,14 +1,14 @@
 * {
   box-sizing: border-box;
 }
-:root {
-  --panel: #ffffff;
-  --ink: #1b1f24;
-  --shadow: rgba(0, 0, 0, 0.15);
-  --gb1: #0f380f;
-  --gb2: #306230;
-  --gb3: #8bac0f;
-  --gb4: #9bbc0f;
+:root{
+  --neo-bg: #060a13;
+  --neo-panel: rgba(8,14,24,.65);
+  --neo-border: #0ff;            
+  --neo-border-2: #8aff00;       
+  --neo-accent: #ff2eac;        
+  --neo-text: #e8f7ff;
+  --neo-muted: #8aa6c7;
 }
 html,
 body {
@@ -30,6 +30,134 @@ body {
   justify-content: center;
   overflow: hidden;
 }
+/* ===== NEON BUTTONS + CLEAN LAYOUT ===== */
+
+/* Ortak ayarlar */
+.btn, .pixel-btn {
+  --glow: rgba(0,255,255,.35);
+  --border: rgba(0,255,255,.55);
+  --bg: rgba(10,16,28,.6);
+  --txt: #e8f7ff;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+
+  padding: .8rem 1.2rem;
+  min-width: 260px;                 /* büyük butonlar için sabit genişlik */
+  border: 2px solid var(--border);
+  border-radius: 10px;
+
+  background: linear-gradient(180deg, rgba(12,22,36,.85), rgba(8,14,24,.6));
+  color: var(--txt);
+  text-shadow: 0 0 6px rgba(0,0,0,.6);
+
+  box-shadow:
+    0 0 18px var(--glow),
+    inset 0 0 0 1px rgba(255,255,255,.05),
+    0 6px 0 rgba(0,0,0,.7);
+  transform: translateY(0);
+  transition: transform .08s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+.warning-p {
+  color: #ff6f91;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.btn:hover, .pixel-btn:hover {
+  box-shadow:
+    0 0 26px var(--glow),
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    0 10px 18px rgba(0,0,0,.55);
+  filter: saturate(1.2);
+}
+
+.btn:active, .pixel-btn:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 16px var(--glow),
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 2px 0 rgba(0,0,0,.8);
+}
+
+/* Varyantlar (aynı sınıfları kullanıyoruz) */
+.pixel-btn.primary, .btn.primary {
+  --glow: rgba(0,255,255,.45);
+  --border: #00eaff;
+  background: radial-gradient(160% 120% at 50% -40%, rgba(0,240,255,.28), rgba(8,14,24,.75));
+}
+.pixel-btn.success, .btn.success {
+  --glow: rgba(138,255,0,.45);
+  --border: #8aff00;
+  background: radial-gradient(160% 120% at 50% -40%, rgba(138,255,0,.22), rgba(8,14,24,.75));
+}
+.pixel-btn.danger, .btn.danger {
+  --glow: rgba(255,46,172,.45);
+  --border: #ff2eac;
+  background: radial-gradient(160% 120% at 50% -40%, rgba(255,46,172,.22), rgba(8,14,24,.75));
+}
+
+/* Ghost/disabled */
+.btn.ghost, .pixel-btn.ghost,
+.btn[disabled], .pixel-btn[disabled]{
+  opacity: .45;
+  cursor: default;
+  filter: grayscale(.2);
+  box-shadow: 0 0 8px rgba(255,255,255,.05), 0 4px 0 rgba(0,0,0,.6);
+}
+
+/* Buton sırası: merkezde, düzenli aralık */
+.panel .row.center {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+/* Sort bölümünü hizala ve neon kenarla uyumlu yap */
+#sortControls, #sortControlsStart {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.sortSel, .pixel-input, select {
+  min-width: 220px;
+  padding: .6rem .8rem;
+  border-radius: 10px;
+  border: 2px solid rgba(0,255,255,.35);
+  background: rgba(8,14,24,.7);
+  color: #e8f7ff;
+  box-shadow: inset 0 0 8px rgba(0,255,255,.12);
+}
+
+
+
+/* “Retry / Send” butonlarını öne çıkar */
+#retryBtn { border-color:#8aff00; box-shadow: 0 0 22px rgba(138,255,0,.35), 0 6px 0 rgba(0,0,0,.7); }
+#sendBtnOver { border-color:#00eaff; box-shadow: 0 0 22px rgba(0,255,255,.35), 0 6px 0 rgba(0,0,0,.7); }
+
+/* Panel içindeki tipografinin kontrastını artır */
+.panel .score-title, .panel .gb-h2, .panel .gb-h3, .panel .score-row b {
+  letter-spacing: 1px;
+  color: #e8f7ff;
+}
+.panel .score-row span { color: #8aa6c7; }
+
+/* Panel kenarını biraz daha belirginleştir */
+.panel, .gb-panel {
+  border-color: rgba(0,255,255,.28);
+  box-shadow:
+    0 0 0 1px rgba(0,255,255,.12) inset,
+    0 0 24px rgba(0,255,255,.22),
+    0 12px 28px rgba(0,0,0,.45);
+}
+
 .synth-bg {
   background: radial-gradient(
     1200px 800px at 20% 10%,
@@ -129,6 +257,8 @@ body.in-battle #hudWrap {
   z-index: 20;
 }
 
+.overlay{ background: radial-gradient(1000px 700px at 50% 10%, rgba(10,18,30,.65), rgba(3,6,12,.88)); }
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -141,7 +271,137 @@ body.in-battle #hudWrap {
 }
 .overlay.show {
   display: flex;
+
 }
+
+.panel,
+.gb-panel{
+  background: var(--neo-panel);
+  color: var(--neo-text);
+  border-radius: 12px;
+  border: 2px solid rgba(0,255,255,.35);
+  box-shadow:
+    0 0 0 1px rgba(0,255,255,.15) inset,
+    0 0 22px rgba(0,255,255,.25),
+    0 12px 28px rgba(0,0,0,.45);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.gb-h2, .gb-h3{
+  color: var(--neo-text);
+  text-shadow: 0 0 18px rgba(0,255,255,.35);
+  letter-spacing: 2px;
+}
+
+/* Score kutuları: cam + neon kenar */
+.score-col{
+  background: rgba(10,16,28,.35);
+  border: 1.5px solid rgba(0,255,255,.35);
+  box-shadow:
+    0 0 0 1px rgba(0,255,255,.15) inset,
+    0 8px 20px rgba(0,0,0,.45);
+  color: var(--neo-text);
+}
+.score-title{ color: var(--neo-muted); }
+
+/* HUD’ı neon cam bar yap */
+#hud{
+  background: rgba(8,14,24,.55);
+  border: 1.5px solid rgba(0,255,255,.35);
+  box-shadow:
+    0 0 0 1px rgba(0,255,255,.15) inset,
+    0 8px 20px rgba(0,0,0,.45);
+  color: var(--neo-text);
+}
+.pixel-hud-center,
+.pixel-hud-right,
+#hudPower{
+  background: rgba(8,14,24,.6);
+  border: 1.5px solid rgba(0,255,255,.35);
+  color: var(--neo-text);
+  box-shadow: 0 0 14px rgba(0,255,255,.2);
+}
+
+/* Butonlar: üç ana neon tonu */
+.pixel-btn, .btn{
+  background: rgba(10,16,28,.6);
+  color: var(--neo-text);
+  border: 2px solid rgba(0,255,255,.45);
+  box-shadow:
+    0 0 12px rgba(0,255,255,.25),
+    0 4px 0 rgba(0,0,0,.7);
+}
+.pixel-btn.primary{        /* mavi/cyan */
+  background: rgba(0,255,255,.12);
+  border-color: var(--neo-border);
+  box-shadow: 0 0 18px rgba(0,255,255,.35), 0 4px 0 rgba(0,0,0,.7);
+}
+.pixel-btn.success{        /* lime */
+  background: rgba(138,255,0,.12);
+  border-color: var(--neo-border-2);
+  box-shadow: 0 0 18px rgba(138,255,0,.35), 0 4px 0 rgba(0,0,0,.7);
+}
+.pixel-btn.danger{         /* magenta */
+  background: rgba(255,46,172,.12);
+  border-color: var(--neo-accent);
+  box-shadow: 0 0 18px rgba(255,46,172,.35), 0 4px 0 rgba(0,0,0,.7);
+}
+.btn.ghost{ opacity:.45; }
+
+/* Input/Select (karanlık alan, neon border) */
+.pixel-input,
+.sortSel,
+select{
+  background: rgba(8,14,24,.7);
+  color: var(--neo-text);
+  border: 2px solid rgba(0,255,255,.35);
+  box-shadow: 0 0 12px rgba(0,255,255,.2) inset, 0 4px 0 rgba(0,0,0,.6);
+}
+.pixel-input::placeholder{ color: var(--neo-muted); }
+
+/* “PRESS START” vs. neon parıltı */
+.press-start{
+  color: var(--neo-text);
+  text-shadow: 0 0 10px rgba(0,255,255,.45), 0 0 24px rgba(0,255,255,.25);
+}
+
+/* Pokedex kartları: gri değil neon hafif */
+.dex .card{
+  background: rgba(8,14,24,.6);
+  color: var(--neo-text);
+  border: 1.5px solid rgba(0,255,255,.28);
+  box-shadow: 0 0 0 1px rgba(0,255,255,.12) inset, 0 6px 18px rgba(0,0,0,.55);
+}
+.dex .meta{ color: var(--neo-muted); }
+.dex .thumb{ background: rgba(8,14,24,.35); border-color: rgba(0,255,255,.25); }
+
+/* Corruption görsel çerçevesi neon */
+.corrupt-visual img{
+  background: rgba(8,14,24,.55);
+  border: 2px solid rgba(255,46,172,.6);
+  box-shadow: 0 0 20px rgba(255,46,172,.35), 0 6px 0 rgba(0,0,0,.6);
+}
+
+/* Küçük neon “nefes” animasyonu */
+@keyframes neoPulse{
+  0%,100%{ box-shadow: 0 0 12px rgba(0,255,255,.25); }
+  50%{    box-shadow: 0 0 22px rgba(0,255,255,.45); }
+}
+.pixel-hud-center,
+#hudPower{ animation: neoPulse 2.6s ease-in-out infinite; }
+
+/* Canvas çerçevesi hafif neon */
+#game{
+  box-shadow:
+    0 0 26px rgba(0,255,255,.18),
+    0 18px 50px rgba(0,0,0,.55);
+  border: 1px solid rgba(0,255,255,.15);
+}
+
+/* Başlık/altbaşlık tipografisini netle */
+.gb-title, .gb-sub { color: var(--neo-text); }
+
+
 .panel {
   background: var(--panel);
   color: var(--ink);
@@ -217,8 +477,6 @@ body.in-battle #hudWrap {
 }
 .pixel-panel {
   border: 4px solid #111827;
-  box-shadow: 0 0 0 2px #fff inset, 0 6px 0 #111827;
-  background: #f8fafc;
   border-radius: 0;
 }
 .pixel-btn,
@@ -288,13 +546,10 @@ body.in-battle #hudWrap {
 }
 
 .gb-panel {
-  background: linear-gradient(180deg, #9bbc0f, #8bac0f);
-  color: #0f380f;
-  border: 6px solid #0f380f;
-  box-shadow: inset 0 0 0 6px #306230, 0 8px 0 #0f380f;
   border-radius: 0;
   text-align: center;
 }
+
 .gb-title {
   font-family: monospace;
   font-size: 40px;

@@ -344,6 +344,15 @@
     return Math.round(v * 2) / 2;
   }
 
+  const neonColors = [
+    "rgba(120,160,255,0.10)",
+    "#00E5FF",
+    "#00C2FF",
+    "#8AFF00",
+    "#FF2E63",
+    "#FFD166",
+  ];
+
   function heartsHTML(current, max) {
     let html = "";
     for (let i = 0; i < max; i++) {
@@ -391,7 +400,6 @@
     }
   }
 
-
   function mulberry32(a) {
     return function () {
       var t = (a += 0x6d2b79f5);
@@ -407,47 +415,51 @@
     return min + (max - min) * rng();
   }
 
-// ---------- Background (synthwave) ----------
-const worldHelpers = {
-  synthParallaxBG() {
-    // Canvas boyutları
-    const w = W;
-    const h = H;
-    const t = performance.now() / 1000;
+  // ---------- Background (synthwave) ----------
+  const worldHelpers = {
+    synthParallaxBG() {
+      // Canvas boyutları
+      const w = W;
+      const h = H;
+      const t = performance.now() / 1000;
 
-    // Arka plan gradyanı
-    ctx.save();
-    ctx.fillStyle = ctx.createRadialGradient(
-      w * 0.2, h * 0.1, 0,
-      w * 0.2, h * 0.1, Math.max(w, h) * 0.9
-    );
-    ctx.fillStyle.addColorStop?.(0, "#12224a");
-    ctx.fillStyle.addColorStop?.(0.5, "#0c1230");
-    ctx.fillStyle.addColorStop?.(1, "#07081A");
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
+      // Arka plan gradyanı
+      ctx.save();
+      ctx.fillStyle = ctx.createRadialGradient(
+        w * 0.2,
+        h * 0.1,
+        0,
+        w * 0.2,
+        h * 0.1,
+        Math.max(w, h) * 0.9
+      );
+      ctx.fillStyle.addColorStop?.(0, "#12224a");
+      ctx.fillStyle.addColorStop?.(0.5, "#0c1230");
+      ctx.fillStyle.addColorStop?.(1, "#07081A");
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
 
-    // Paralaks grid
-    ctx.save();
-    ctx.strokeStyle = "rgba(120,160,255,0.10)";
-    ctx.lineWidth = 1;
-    const s = 32;
-    const offset = (t * 0.06) % s;
-    for (let x = -s + offset; x < w; x += s) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    for (let y = -s + offset; y < h; y += s) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-};
+      // Paralaks grid
+      ctx.save();
+      ctx.strokeStyle = "rgba(120,160,255,0.10)";
+      ctx.lineWidth = 1;
+      const s = 32;
+      const offset = (t * 32) % s;
+      for (let x = -s + offset; x < w; x += s) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = -s + offset; y < h; y += s) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+  };
 
   // ---------- Pipes & neon edges ----------
   function spawnPipe(x) {
@@ -496,11 +508,18 @@ const worldHelpers = {
     }
     ctx.restore();
   }
+
+  // ...diğer kodların üstüne, neon renk dizisinin yanına ekle:
+
   function drawNeonEdges() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, -600, W, 600);
     ctx.fillRect(0, world.groundY, W, H);
-    const neon = "#00ff66";
+
+    // HSL tabanlı smooth neon renk
+    const t = performance.now() / 1000;
+    const neon = `hsl(${(t * 30) % 360}, 95%, 60%)`;
+
     ctx.save();
     ctx.shadowBlur = 18;
     ctx.shadowColor = neon;
@@ -515,6 +534,7 @@ const worldHelpers = {
     ctx.lineTo(W + 20, world.groundY - 0.5);
     ctx.stroke();
     ctx.restore();
+
     function glitches(y, count) {
       for (let i = 0; i < count; i++) {
         const w = 6 + Math.random() * 14;
@@ -589,43 +609,57 @@ const worldHelpers = {
 
   // ---------- Monsters ----------
   function createMonsterCandidate() {
-    const catIdx = Math.floor(rng() * 3);
-    const cat = Categories[catIdx];
-    const forms = Forms[cat];
-    const formIdx = Math.floor(rng() * forms.length);
-    const colorIdx = Math.floor(rng() * Colors.length);
-    const id = monsterId(catIdx, formIdx, colorIdx);
-    const hp = hpForId(catIdx, formIdx, colorIdx);
-    const power = powerForId(catIdx, formIdx, colorIdx);
-    const name = monsterName(catIdx, formIdx, colorIdx);
-    const eyes = eyeCountFor(id);
+    // monsters dizisi monsters.js'den global olarak gelir
+    const idx = Math.floor(rng() * monsters.length);
+    const m = monsters[idx];
+
+    console.log(monsters);
+
+    // Oyun içi pozisyon ve hareket değerlerini ayarla
     let x = W + 50;
-    let y =
-      cat === "Sol"
-        ? world.groundY - 24
-        : cat === "Plafond"
-        ? 24
-        : randRange(80, world.groundY - 200);
+    let y;
+    if (m.category === "Sol") {
+      y = world.groundY - 24;
+    } else if (m.category === "Plafond") {
+      y = 24;
+    } else {
+      y = randRange(80, world.groundY - 200);
+    }
+
     return {
-      id,
-      name,
-      catIdx,
-      formIdx,
-      colorIdx,
-      eyes,
-      color: Colors[colorIdx].c,
+      id: m.id,
+      name: m.name,
+      catIdx: categoryIndex(m.category),
+      formIdx: formIndex(m.category, m.form),
+      colorIdx: colorIndex(m.color.name),
+      eyes: 1, // veya monsters.js'de göz sayısı varsa onu kullan
+      color: m.color.hex,
       x,
       y,
       r: 20,
       vx: -S.speed * 0.5,
       vy: 0,
       state: "idle",
-      maxhp: hp,
-      power: power,
+      maxhp: m.stats.hp,
+      power: m.stats.power,
       wob: rng() * Math.PI * 2,
       midAirUsed: false,
+      img: m.img, // img path'i
     };
   }
+
+  function categoryIndex(catName) {
+    return Categories.indexOf(catName);
+  }
+
+  function formIndex(catName, formName) {
+    return Forms[catName].indexOf(formName);
+  }
+
+  function colorIndex(colorName) {
+    return Colors.findIndex((c) => c.name === colorName);
+  }
+
   function acceptanceFor(mon) {
     const s = starsFor(mon);
     let starFactor = 1.0;
@@ -636,15 +670,11 @@ const worldHelpers = {
     const statFactor = ((11 - mon.maxhp) / 10) * ((11 - mon.power) / 10);
     return Math.min(1, starFactor * statFactor);
   }
+
   function createMonster() {
-    let tries = 0,
-      m;
-    do {
-      m = createMonsterCandidate();
-      tries++;
-    } while (rng() > acceptanceFor(m) && tries < 20);
-    return m;
+    return createMonsterCandidate();
   }
+
   function startBattleIfCollision(mon) {
     const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
     if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
@@ -719,148 +749,28 @@ const worldHelpers = {
 
   function drawMonster(mon, scale = 1) {
     ctx.save();
-    ctx.translate(mon.x, mon.y);
+  ctx.translate(mon.x, mon.y);
+  if (mon.img) {
+    let img = drawMonster._imgCache?.[mon.img];
+    if (!img) {
+      img = new window.Image();
+      img.src = mon.img;
+      drawMonster._imgCache = drawMonster._imgCache || {};
+      drawMonster._imgCache[mon.img] = img;
+    }
+    if (img.complete && img.naturalWidth > 0) {
+      const r = (mon.r || 20) * scale;
+      ctx.drawImage(img, -r, -r, r * 2, r * 2);
+    } else {
+      drawMonsterBody(mon, ctx, scale);
+    }
+  } else {
     drawMonsterBody(mon, ctx, scale);
-    ctx.restore();
   }
-  function drawMonsterBody(mon, dc = ctx, scale = 1) {
-    const r = (mon.r || 20) * scale;
-    dc.save();
-    dc.fillStyle = mon.color;
-    dc.strokeStyle = "rgba(0,0,0,0.25)";
-    dc.lineWidth = 2 * scale;
-    switch (mon.formIdx) {
-      case 0:
-        dc.beginPath();
-        dc.arc(0, 0, r, 0, Math.PI * 2);
-        dc.fill();
-        dc.stroke();
-        break;
-      case 1:
-        dc.beginPath();
-        dc.ellipse(0, 0, r * 1.1, r * 0.8, 0, 0, Math.PI * 2);
-        dc.fill();
-        dc.stroke();
-        break;
-      case 2:
-        dc.beginPath();
-        dc.arc(0, -4 * scale, r * 0.9, Math.PI, 0);
-        dc.lineTo(r * 0.9, 8 * scale);
-        dc.quadraticCurveTo(0, r + 6 * scale, -r * 0.9, 8 * scale);
-        dc.closePath();
-        dc.fill();
-        dc.stroke();
-        break;
-      case 3:
-        dc.beginPath();
-        dc.moveTo(-r, 0);
-        dc.lineTo(0, -r);
-        dc.lineTo(r, 0);
-        dc.lineTo(0, r);
-        dc.closePath();
-        dc.fill();
-        dc.stroke();
-        break;
-      case 4:
-        dc.beginPath();
-        for (let i = 0; i < 7; i++) {
-          const a = i * ((Math.PI * 2) / 7);
-          const rr = i % 2 ? r * 0.7 : r;
-          dc.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
-        }
-        dc.closePath();
-        dc.fill();
-        dc.stroke();
-        break;
-      case 5:
-        dc.beginPath();
-        dc.ellipse(0, -6 * scale, r * 0.9, r * 0.7, 0, 0, Math.PI * 2);
-        dc.fill();
-        dc.stroke();
-        dc.beginPath();
-        dc.arc(0, r * 0.2, r * 0.55, 0, Math.PI * 2);
-        dc.fill();
-        dc.stroke();
-        break;
-    }
-    const cat = Categories[mon.catIdx];
-    if (cat === "Volant") {
-      dc.fillStyle = shade(mon.color, 0.85);
-      dc.beginPath();
-      dc.moveTo(-r, -4 * scale);
-      dc.lineTo(-r - 16 * scale, -10 * scale);
-      dc.lineTo(-r - 4 * scale, 2 * scale);
-      dc.closePath();
-      dc.fill();
-      dc.beginPath();
-      dc.moveTo(r, -4 * scale);
-      dc.lineTo(r + 16 * scale, -10 * scale);
-      dc.lineTo(r + 4 * scale, 2 * scale);
-      dc.closePath();
-      dc.fill();
-    } else if (cat === "Sol") {
-      dc.fillStyle = shade(mon.color, 0.6);
-      dc.fillRect(-r * 0.5, r - 2 * scale, 8 * scale, 6 * scale);
-      dc.fillRect(r * 0.2, r - 2 * scale, 8 * scale, 6 * scale);
-    } else {
-      dc.fillStyle = shade(mon.color, 0.6);
-      dc.beginPath();
-      dc.moveTo(0, -r - 10 * scale);
-      dc.lineTo(-6 * scale, -r);
-      dc.lineTo(6 * scale, -r);
-      dc.closePath();
-      dc.fill();
-    }
-    const eyes = mon.eyes || 1;
-    if (eyes === 1) {
-      dc.beginPath();
-      dc.fillStyle = "#fff";
-      dc.arc(0, 0, r * 0.3, 0, Math.PI * 2);
-      dc.fill();
-      dc.beginPath();
-      dc.fillStyle = "#111";
-      dc.arc(r * 0.08, 0, r * 0.14, 0, Math.PI * 2);
-      dc.fill();
-    } else if (eyes === 2) {
-      const off = r * 0.38;
-      const rr = r * 0.28;
-      for (let sgn of [-1, 1]) {
-        dc.beginPath();
-        dc.fillStyle = "#fff";
-        dc.arc(sgn * off, 0, rr, 0, Math.PI * 2);
-        dc.fill();
-        dc.beginPath();
-        dc.fillStyle = "#111";
-        dc.arc(sgn * off + r * 0.06, 0, rr * 0.45, 0, Math.PI * 2);
-        dc.fill();
-      }
-    } else {
-      const topY = -r * 0.28,
-        botY = r * 0.2,
-        off = r * 0.28,
-        rrTop = r * 0.24,
-        rrBot = r * 0.22;
-      dc.beginPath();
-      dc.fillStyle = "#fff";
-      dc.arc(0, topY, rrTop, 0, Math.PI * 2);
-      dc.fill();
-      dc.beginPath();
-      dc.fillStyle = "#111";
-      dc.arc(r * 0.06, topY, rrTop * 0.45, 0, Math.PI * 2);
-      dc.fill();
-      for (let sgn of [-1, 1]) {
-        dc.beginPath();
-        dc.fillStyle = "#fff";
-        dc.arc(sgn * off, botY, rrBot, 0, Math.PI * 2);
-        dc.fill();
-        dc.beginPath();
-        dc.fillStyle = "#111";
-        dc.arc(sgn * off + r * 0.05, botY, rrBot * 0.45, 0, Math.PI * 2);
-        dc.fill();
-      }
-    }
-    dc.restore();
+  ctx.restore();
   }
+
+ 
   function shade(hex, k) {
     const c = parseInt(hex.slice(1), 16);
     let r = (c >> 16) & 255,
@@ -1622,7 +1532,7 @@ const worldHelpers = {
       return;
     }
     try {
-      corruptTitle.textContent = `Vous avez perdu ${lost} balls`;
+      corruptTitle.textContent = `You lost ${lost} balls`;
       // Visual: one large ball
       corruptVisual.innerHTML =
         '<div style="display:flex;justify-content:center;margin:8px 0 12px">' +
@@ -1657,7 +1567,6 @@ const worldHelpers = {
   }
   // ---------- Rendering ----------
   function drawWorldNormal() {
-
     worldHelpers.synthParallaxBG();
 
     for (let p of pipes) {
@@ -2110,7 +2019,8 @@ const worldHelpers = {
       const arr = computeList();
       if (arr.length === 0) {
         const p = document.createElement("p");
-        p.textContent = "Aucun monstre capturé pour l'instant.";
+        p.textContent = "You have not captured any monsters yet.";
+        p.classList.add("warning-p");
         container.appendChild(p);
         return;
       }
