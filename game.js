@@ -1,7 +1,14 @@
 // Angry Flappy: Monsters & Quiz Battles — v8.2 (half-hearts, new damage/capture/heal)
+
+monsters = window.MONSTERS ;
+questions = window.QUESTIONS ;
+
 (function () {
+
+
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
+  console.log(questions)
   let W = canvas.width,
     H = canvas.height;
 
@@ -297,7 +304,7 @@
   };
   let pipes = [];
   let nextPipeX = 600;
-  let monsters = [];
+  console.log(monsters);
   let monsterTimer = 0;
   let items = [];
   let itemTimer = 1.5;
@@ -611,7 +618,15 @@
   function createMonsterCandidate() {
     // monsters dizisi monsters.js'den global olarak gelir
     const idx = Math.floor(rng() * monsters.length);
+    console.log("Selected monster index: " + idx);
+    console.log("Total monsters available: " + monsters.length);
+    if (idx < 0 || idx >= monsters.length) {
+      console.error("Invalid monster index selected:", idx);
+      return null;
+    }
+    console.log("Monsters array:", monsters);
     const m = monsters[idx];
+    console.log("Spawning monster:"  + m.name);
 
     console.log(monsters);
 
@@ -627,24 +642,24 @@
     }
 
     return {
-      id: m.id,
-      name: m.name,
-      catIdx: categoryIndex(m.category),
-      formIdx: formIndex(m.category, m.form),
-      colorIdx: colorIndex(m.color.name),
-      eyes: 1, // veya monsters.js'de göz sayısı varsa onu kullan
-      color: m.color.hex,
+      id: monsters.id,
+      name: monsters.name,
+      catIdx: categoryIndex(monsters.category),
+      // formIdx: formIndex(m.category, m.form),
+      // colorIdx: colorIndex(monsters.color.name),
+      // eyes: 1, // veya monsters.js'de göz sayısı varsa onu kullan
+      // color: m.color.hex,
       x,
       y,
       r: 20,
       vx: -S.speed * 0.5,
       vy: 0,
       state: "idle",
-      maxhp: m.stats.hp,
-      power: m.stats.power,
+      // maxhp: monsters.stats.hp,
+      // power: monsters.stats.power,
       wob: rng() * Math.PI * 2,
       midAirUsed: false,
-      img: m.img, // img path'i
+      // img: m.img, // img path'i
     };
   }
 
@@ -652,9 +667,9 @@
     return Categories.indexOf(catName);
   }
 
-  function formIndex(catName, formName) {
-    return Forms[catName].indexOf(formName);
-  }
+  // function formIndex(catName, formName) {
+  //   return Forms[catName].indexOf(formName);
+  // }
 
   function colorIndex(colorName) {
     return Colors.findIndex((c) => c.name === colorName);
@@ -747,28 +762,28 @@
   // 4) trail
   // 5) drawBird()
 
-  function drawMonster(mon, scale = 1) {
-    ctx.save();
-  ctx.translate(mon.x, mon.y);
-  if (mon.img) {
-    let img = drawMonster._imgCache?.[mon.img];
-    if (!img) {
-      img = new window.Image();
-      img.src = mon.img;
-      drawMonster._imgCache = drawMonster._imgCache || {};
-      drawMonster._imgCache[mon.img] = img;
-    }
-    if (img.complete && img.naturalWidth > 0) {
-      const r = (mon.r || 20) * scale;
-      ctx.drawImage(img, -r, -r, r * 2, r * 2);
-    } else {
-      drawMonsterBody(mon, ctx, scale);
-    }
-  } else {
-    drawMonsterBody(mon, ctx, scale);
-  }
-  ctx.restore();
-  }
+  // function drawMonster(mon, scale = 1) {
+  //   ctx.save();
+  // ctx.translate(mon.x, mon.y);
+  // if (mon.img) {
+  //   let img = drawMonster._imgCache?.[mon.img];
+  //   if (!img) {
+  //     img = new window.Image();
+  //     img.src = mon.img;
+  //     drawMonster._imgCache = drawMonster._imgCache || {};
+  //     drawMonster._imgCache[mon.img] = img;
+  //   }
+  //   if (img.complete && img.naturalWidth > 0) {
+  //     const r = (mon.r || 20) * scale;
+  //     ctx.drawImage(img, -r, -r, r * 2, r * 2);
+  //   } else {
+  //     drawMonsterBody(mon, ctx, scale);
+  //   }
+  // } else {
+  //   drawMonsterBody(mon, ctx, scale);
+  // }
+  // ctx.restore();
+  // }
 
  
   function shade(hex, k) {
@@ -873,9 +888,8 @@
   });
 
   function pickQuestion() {
-    const core = [questions[0], questions[1], questions[2]];
-    const pool = core.concat(questions);
-    return pool[Math.floor(rng() * pool.length)];
+      const idx = Math.floor(Math.random() * questions.length);
+      return questions[idx]?.question || "did not find question";
   }
 
   // ---------- Input ----------
@@ -1017,7 +1031,7 @@
     }
     pipes = [];
     nextPipeX = 600;
-    monsters = [];
+    // monsters = [];
     monsterTimer = 0;
     items = [];
     itemTimer = 1.5;
@@ -1112,10 +1126,10 @@
     bird.vy = 0;
     bird.tilt = 0;
     bird.invulnUntil = 0;
-    bird.trail = []; // <-- Bunu ekle!
+    bird.trail = []; 
     pipes = [];
     nextPipeX = 600;
-    monsters = [];
+    // monsters = [];
     monsterTimer = 0;
     items = [];
     itemTimer = 1.5;
@@ -1577,7 +1591,7 @@
       drawItem(it);
     }
     for (let m of monsters) {
-      drawMonster(m);
+      // drawMonster(m);
       if (state === "playing") drawStars(m);
     }
     ctx.save();
@@ -1595,7 +1609,7 @@
     if (activeUnit.isMonster) {
       const me = activeUnit.monster;
       const pm = { ...me, x: bird.x, y: bird.y, r: me.r };
-      drawMonster(pm);
+      // drawMonster(pm);
     } else {
       drawBird();
     }
@@ -1754,7 +1768,7 @@
         ctx.save();
         ctx.globalAlpha = 0.55;
         ctx.translate(enemyX, enemyY);
-        drawMonsterBody(battle.mon, ctx, 2.2);
+        // drawMonsterBody(battle.mon, ctx, 2.2);
         ctx.restore();
         if (now >= anim.capture.holdUntil) {
           anim.capture.phase = "result";
@@ -1820,7 +1834,7 @@
     ctx.restore();
     ctx.save();
     ctx.translate(enemyX, enemyY);
-    drawMonsterBody(battle.mon, ctx, 2.2);
+    // drawMonsterBody(battle.mon, ctx, 2.2);
     ctx.restore();
 
     const playerScreenX = W * 0.18 + 40 * plyLunge;
@@ -1828,7 +1842,7 @@
     ctx.save();
     ctx.translate(playerScreenX, playerScreenY);
     if (activeUnit.isMonster) {
-      drawMonsterBody(activeUnit.monster, ctx, 2.0);
+      // drawMonsterBody(activeUnit.monster, ctx, 2.0);
     } else {
       drawBird(1.6);
     }
@@ -2142,7 +2156,7 @@
     const c2 = off.getContext("2d");
     c2.translate(size / 2, size / 2);
     const tmp = { ...mon, x: 0, y: 0, r: Math.min(18, size * 0.28) };
-    drawMonsterBody(tmp, c2, 1.0);
+    // drawMonsterBody(tmp, c2, 1.0);
     return off.toDataURL();
   }
 

@@ -1,4 +1,4 @@
-const questions = [
+let questions = [
   { id: 1, question: "What is the capital city of France?", answer: "Paris" },
   {
     id: 2,
@@ -38,3 +38,5 @@ const questions = [
     answer: "Seven",
   },
 ];
+
+window.QUESTIONS = questions;

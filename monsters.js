@@ -1,4 +1,4 @@
-const monsters =  [
+let monsters =  [
   {
     "id": "0-3-8",
     "name": "Rapvolose",
@@ -55,4 +55,7 @@ const monsters =  [
     "color": { "name": "Cyan", "hex": "#06b6d4" },
     "stats": { "hp": 10, "power": 6, "stars": 2 }
   }
-]
+];
+
+window.MONSTERS = monsters;
+
