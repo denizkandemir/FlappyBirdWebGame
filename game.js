@@ -1,7 +1,7 @@
 // Angry Flappy: Monsters & Quiz Battles — v8.2 (half-hearts, new damage/capture/heal)
 
-monsters = window.MONSTERS ;
-questions = window.QUESTIONS ;
+monsters = window.MONSTERS;
+questions = window.QUESTIONS;
 
 (function () {
 
@@ -11,6 +11,8 @@ questions = window.QUESTIONS ;
   console.log(questions)
   let W = canvas.width,
     H = canvas.height;
+  let availableMonsters = monsters.slice();
+  let collidedMonsterIds = [];
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -38,7 +40,7 @@ questions = window.QUESTIONS ;
   /* init start collection */
   try {
     if (dexStart) renderCollectionPaged(dexStart);
-  } catch (e) {}
+  } catch (e) { }
 
   // Battle overlay DOM
   const battleOverlay = document.getElementById("battleOverlay");
@@ -101,14 +103,14 @@ questions = window.QUESTIONS ;
               const d = document.getElementById("dexStart");
               if (d) renderCollectionPaged(d);
             }
-          } catch (e) {}
+          } catch (e) { }
           try {
             const selStart = document.getElementById("monsterSelectStart");
             if (selStart && typeof updateMonsterSelect === "function")
               updateMonsterSelect(selStart);
-          } catch (e) {}
+          } catch (e) { }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       try {
         high = Number(localStorage.getItem("angryflappy_high") || 0);
@@ -127,10 +129,10 @@ questions = window.QUESTIONS ;
           const selStart = document.getElementById("monsterSelectStart");
           if (selStart && typeof updateMonsterSelect === "function")
             updateMonsterSelect(selStart);
-        } catch (e) {}
-      } catch (e) {}
+        } catch (e) { }
+      } catch (e) { }
     });
-  } catch (e) {}
+  } catch (e) { }
   let score = 0;
   let lives = activeUnit.hpMax;
   let capturesRun = 0;
@@ -183,11 +185,11 @@ questions = window.QUESTIONS ;
   try {
     const selStart = document.getElementById("monsterSelectStart");
     if (selStart) updateMonsterSelect(selStart);
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     if (dexStart) renderCollectionPaged(dexStart);
-  } catch (e) {}
+  } catch (e) { }
   function loadCollection() {
     try {
       return JSON.parse(localStorage.getItem("angryflappy_collection") || "[]");
@@ -366,9 +368,8 @@ questions = window.QUESTIONS ;
       const frac = Math.max(0, Math.min(1, current - i));
       const pct = Math.round(frac * 100);
       html += `<svg viewBox="0 0 32 29" class="heartSvg" aria-hidden="true">
-        <defs><clipPath id="clip${i}"><rect x="0" y="0" width="${
-        (32 * pct) / 100
-      }" height="29"></rect></clipPath></defs>
+        <defs><clipPath id="clip${i}"><rect x="0" y="0" width="${(32 * pct) / 100
+        }" height="29"></rect></clipPath></defs>
         <path d="M16 29S1 19 1 9a8 8 0 0 1 15-3 8 8 0 0 1 15 3c0 10-15 20-15 20z" fill="#e5e7eb" stroke="#1f2937" stroke-width="1"></path>
         <g clip-path="url(#clip${i})">
           <path d="M16 29S1 19 1 9a8 8 0 0 1 15-3 8 8 0 0 1 15 3c0 10-15 20-15 20z" fill="#e11d48"></path>
@@ -616,21 +617,17 @@ questions = window.QUESTIONS ;
 
   // ---------- Monsters ----------
   function createMonsterCandidate() {
-    // monsters dizisi monsters.js'den global olarak gelir
-    const idx = Math.floor(rng() * monsters.length);
-    console.log("Selected monster index: " + idx);
-    console.log("Total monsters available: " + monsters.length);
-    if (idx < 0 || idx >= monsters.length) {
-      console.error("Invalid monster index selected:", idx);
+    // Sadece çarpılmamış canavarlar
+    const candidates = availableMonsters.filter(m => !collidedMonsterIds.includes(m.id));
+    if (candidates.length === 0) {
       return null;
     }
-    console.log("Monsters array:", monsters);
-    const m = monsters[idx];
-    console.log("Spawning monster:"  + m.name);
+    const idx = Math.floor(rng() * candidates.length);
+    const m = candidates[idx];
 
-    console.log(monsters);
+    // Seçilen canavarı availableMonsters'tan çıkarmayı kaldır!
+    // availableMonsters = availableMonsters.filter(mon => mon.id !== m.id);
 
-    // Oyun içi pozisyon ve hareket değerlerini ayarla
     let x = W + 50;
     let y;
     if (m.category === "Sol") {
@@ -642,29 +639,19 @@ questions = window.QUESTIONS ;
     }
 
     return {
-      id: monsters.id,
-      name: monsters.name,
-      catIdx: categoryIndex(monsters.category),
-      // formIdx: formIndex(m.category, m.form),
-      // colorIdx: colorIndex(monsters.color.name),
-      // eyes: 1, // veya monsters.js'de göz sayısı varsa onu kullan
-      // color: m.color.hex,
+      id: m.id,
+      name: m.name,
+      catIdx: categoryIndex(m.category),
       x,
       y,
       r: 20,
       vx: -S.speed * 0.5,
       vy: 0,
       state: "idle",
-      // maxhp: monsters.stats.hp,
-      // power: monsters.stats.power,
       wob: rng() * Math.PI * 2,
       midAirUsed: false,
-      // img: m.img, // img path'i
+      img: m.img,
     };
-  }
-
-  function categoryIndex(catName) {
-    return Categories.indexOf(catName);
   }
 
   // function formIndex(catName, formName) {
@@ -674,6 +661,10 @@ questions = window.QUESTIONS ;
   function colorIndex(colorName) {
     return Colors.findIndex((c) => c.name === colorName);
   }
+
+  function categoryIndex(categoryName) {
+  return Categories.indexOf(categoryName);
+}
 
   function acceptanceFor(mon) {
     const s = starsFor(mon);
@@ -690,18 +681,21 @@ questions = window.QUESTIONS ;
     return createMonsterCandidate();
   }
 
-  function startBattleIfCollision(mon) {
-    const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
-    if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
-      startBattle({ ...mon });
-      monsters = monsters.filter((mm) => mm !== mon);
-      return true;
+ function startBattleIfCollision(mon) {
+  const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
+  if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
+    startBattle({ ...mon });
+    monsters = monsters.filter((mm) => mm !== mon);
+    if (!collidedMonsterIds.includes(mon.id)) {
+      collidedMonsterIds.push(mon.id);
+      // Çarpılan canavarı havuzdan çıkar
+      availableMonsters = availableMonsters.filter(m => m.id !== mon.id);
     }
-    return false;
+    return true;
   }
-  // Sabitler (yoksa bunları ekle)
-  const FLOOR_H = 40; // zemindeki çizginin kalınlığı
-  // bird objesi (oyunda zaten varsa birleştir)
+  return false;
+}
+  const FLOOR_H = 40;
 
   // --- Geometry Dash tarzı bird ---
   function drawBird(scale = 1) {
@@ -762,30 +756,26 @@ questions = window.QUESTIONS ;
   // 4) trail
   // 5) drawBird()
 
-  // function drawMonster(mon, scale = 1) {
-  //   ctx.save();
-  // ctx.translate(mon.x, mon.y);
-  // if (mon.img) {
-  //   let img = drawMonster._imgCache?.[mon.img];
-  //   if (!img) {
-  //     img = new window.Image();
-  //     img.src = mon.img;
-  //     drawMonster._imgCache = drawMonster._imgCache || {};
-  //     drawMonster._imgCache[mon.img] = img;
-  //   }
-  //   if (img.complete && img.naturalWidth > 0) {
-  //     const r = (mon.r || 20) * scale;
-  //     ctx.drawImage(img, -r, -r, r * 2, r * 2);
-  //   } else {
-  //     drawMonsterBody(mon, ctx, scale);
-  //   }
-  // } else {
-  //   drawMonsterBody(mon, ctx, scale);
-  // }
-  // ctx.restore();
-  // }
+  function drawMonster(mon, scale = 1) {
+    ctx.save();
+    ctx.translate(mon.x, mon.y);
+    if (mon.img) {
+      let img = drawMonster._imgCache?.[mon.img];
+      if (!img) {
+        img = new window.Image();
+        img.src = mon.img;
+        drawMonster._imgCache = drawMonster._imgCache || {};
+        drawMonster._imgCache[mon.img] = img;
+      }
+      if (img.complete && img.naturalWidth > 0) {
+        const r = (mon.r || 20) * scale;
+        ctx.drawImage(img, -r, -r, r * 2, r * 2);
+      }
+    }
+    ctx.restore();
+  }
 
- 
+
   function shade(hex, k) {
     const c = parseInt(hex.slice(1), 16);
     let r = (c >> 16) & 255,
@@ -867,14 +857,13 @@ questions = window.QUESTIONS ;
   function toiPanelHTML() {
     const hearts = heartsHTML(lives, activeUnit.hpMax);
     const bolts = "⚡".repeat(activeUnit.power);
-    return `<div class="toi-left"><span class="toi-name">${
-      activeUnit.name || "Dresseur"
-    }</span></div>
+    return `<div class="toi-left"><span class="toi-name">${activeUnit.name || "Dresseur"
+      }</span></div>
             <div class="toi-stats">
               <div class="toi-hearts">${hearts}</div>
               <div class="toi-balls">${neonBallSVG(
-                20
-              )} <strong>x ${balls}</strong></div>
+        20
+      )} <strong>x ${balls}</strong></div>
               <div class="toi-power" title="Puissance">${bolts}</div>
             </div>`;
   }
@@ -888,8 +877,8 @@ questions = window.QUESTIONS ;
   });
 
   function pickQuestion() {
-      const idx = Math.floor(Math.random() * questions.length);
-      return questions[idx]?.question || "did not find question";
+    const idx = Math.floor(Math.random() * questions.length);
+    return questions[idx]?.question || "did not find question";
   }
 
   // ---------- Input ----------
@@ -958,6 +947,8 @@ questions = window.QUESTIONS ;
 
   if (startBtn) {
     startBtn.addEventListener("click", () => {
+      availableMonsters = monsters.slice();
+      collidedMonsterIds = [];
       startScreen.classList.remove("show");
       selectedMonsterId = null;
       resetGame();
@@ -1126,7 +1117,7 @@ questions = window.QUESTIONS ;
     bird.vy = 0;
     bird.tilt = 0;
     bird.invulnUntil = 0;
-    bird.trail = []; 
+    bird.trail = [];
     pipes = [];
     nextPipeX = 600;
     // monsters = [];
@@ -1300,7 +1291,10 @@ questions = window.QUESTIONS ;
     // Monsters (AI untouched)
     monsterTimer -= dt;
     if (monsterTimer <= 0) {
-      monsters.push(createMonster());
+      const newMonster = createMonster();
+      if (newMonster) {
+        monsters.push(newMonster);
+      }
       monsterTimer = randRange(S.spawnEverySec[0], S.spawnEverySec[1]);
     }
     for (let m of monsters) {
@@ -1447,8 +1441,8 @@ questions = window.QUESTIONS ;
         ? 2.0
         : (runMaxLives === 1 && runPower === 2) ||
           (runMaxLives === 2 && runPower === 1)
-        ? 1.5
-        : 1.0;
+          ? 1.5
+          : 1.0;
     const base = distance * 10 + capturesRun * 80;
     const penalty = lostBattlesRun * 40;
     const runScore = Math.max(0, Math.round((base - penalty) * mult));
@@ -1461,7 +1455,7 @@ questions = window.QUESTIONS ;
       document.getElementById("prevDistance").textContent = `${distance} m`;
       document.getElementById("prevCaptures").textContent = String(capturesRun);
       document.getElementById("prevScore").textContent = String(runScore);
-    } catch (e) {}
+    } catch (e) { }
     try {
       document.getElementById("bestDistance").textContent = `${high} m`;
       document.getElementById("bestCaptures").textContent =
@@ -1469,7 +1463,7 @@ questions = window.QUESTIONS ;
       document.getElementById("bestScoreVal").textContent = String(
         Number(localStorage.getItem("angryflappy_bestscore") || 0)
       );
-    } catch (e) {}
+    } catch (e) { }
 
     // If we lost WITHOUT a monster, display ball-loss overlay first
     try {
@@ -1483,7 +1477,7 @@ questions = window.QUESTIONS ;
         showBallLossOverlay(lost);
         return;
       }
-    } catch (e) {}
+    } catch (e) { }
     renderCollectionPaged(dexEl);
     updateSendButtons();
     gameOverEl.classList.add("show");
@@ -1563,7 +1557,7 @@ questions = window.QUESTIONS ;
           triggerGameOverReal();
         };
       }
-    } catch (e) {}
+    } catch (e) { }
     corruptOverlay.classList.add("show");
   }
 
@@ -1573,7 +1567,7 @@ questions = window.QUESTIONS ;
     if (typeof battleOverlay !== "undefined") {
       try {
         battleOverlay.classList.remove("show");
-      } catch (e) {}
+      } catch (e) { }
     }
     renderCollectionPaged(dexEl);
     updateSendButtons();
@@ -1591,7 +1585,7 @@ questions = window.QUESTIONS ;
       drawItem(it);
     }
     for (let m of monsters) {
-      // drawMonster(m);
+      drawMonster(m);
       if (state === "playing") drawStars(m);
     }
     ctx.save();
@@ -1609,7 +1603,7 @@ questions = window.QUESTIONS ;
     if (activeUnit.isMonster) {
       const me = activeUnit.monster;
       const pm = { ...me, x: bird.x, y: bird.y, r: me.r };
-      // drawMonster(pm);
+      drawMonster(pm);
     } else {
       drawBird();
     }
@@ -1797,7 +1791,7 @@ questions = window.QUESTIONS ;
               try {
                 renderCollectionPaged(dexStart);
                 renderCollectionPaged(dexEl);
-              } catch (e) {}
+              } catch (e) { }
             }
             capturesRun++;
             if (capturesRun > bestCaptInRun) {
@@ -2069,9 +2063,8 @@ questions = window.QUESTIONS ;
         title.textContent = e.name;
         const meta = document.createElement("div");
         meta.className = "meta";
-        meta.textContent = `PV: ${e.hp} • Puissance: ${e.power} • Niveau: ${
-          e.hp + e.power
-        }`;
+        meta.textContent = `PV: ${e.hp} • Puissance: ${e.power} • Niveau: ${e.hp + e.power
+          }`;
         box.appendChild(title);
         box.appendChild(meta);
         card.appendChild(thumb);
@@ -2242,11 +2235,11 @@ function runSplash() {
     startScreen.classList.add("show");
     try {
       if (dexStart) renderCollectionPaged(dexStart);
-    } catch (e) {}
+    } catch (e) { }
     try {
       const selStart = document.getElementById("monsterSelectStart");
       if (selStart) updateMonsterSelect(selStart);
-    } catch (e) {}
+    } catch (e) { }
   }, 3000);
 }
 // Hide start at first, splash visible
