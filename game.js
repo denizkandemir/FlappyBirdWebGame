@@ -60,12 +60,12 @@ questions = window.QUESTIONS;
 
   const S = {
     gravity: 1600,
-    flap: 420,
+    flap: 320,
     pipeGap: 180,
     pipeW: 86,
     pipeSpacing: 360,
     speed: 240,
-    birdR: 18,
+    birdR: 16.5,
     invulnMs: 1200,
     spawnEverySec: [4, 7],
     monsterBaseSpeed: 90,
