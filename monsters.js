@@ -5,7 +5,7 @@ let monsters =  [
     category: "Volant",
     form: "Raptix",
     color: { "name": "Rose", "hex": "#ec4899" },
-    stats: { "hp": 7, "power": 3, "stars": 1 },
+    stats: { hp: 7, maxhp: 7, power: 3, stars: 1 },
     img:"assets/monster1.png"
 
   },
@@ -15,7 +15,7 @@ let monsters =  [
     category: "Sol",
     form: "Herizo",
     color: { name: "Azur", hex: "#3b82f6" },
-    stats: { hp: 1, power: 3, stars: 0 },
+    stats: { hp: 6, maxhp: 6, power: 3, stars: 0 },
     img: "assets/monster2.png"
   },
   {
@@ -24,7 +24,7 @@ let monsters =  [
     category: "Plafond",
     form: "Stalax",
     color: { name: "Ombre", hex: "#374151" },
-    stats: { hp: 7, power: 1, stars: 1 },
+    stats: { hp: 7, maxhp: 7, power: 1, stars: 1 },
     img: "assets/monster3.png"
   },
   {
@@ -33,7 +33,7 @@ let monsters =  [
     category: "Volant",
     form: "Aileron",
     color: { name: "Or", hex: "#f59e0b" },
-    stats: { hp: 3, power: 3, stars: 1 },
+    stats: { hp: 3, maxhp: 3, power: 3, stars: 1 },
     img: "assets/monster4.png"
   },
   {
@@ -42,7 +42,7 @@ let monsters =  [
     category: "Sol",
     form: "Rochet",
     color: { name: "Cuivre", hex: "#b45309" },
-    stats: { hp: 4, power: 6, stars: 1 },
+    stats: { hp: 4, maxhp: 4, power: 6, stars: 1 },
     img: "assets/monster5.png"
   },
   {
@@ -51,7 +51,7 @@ let monsters =  [
     category: "Plafond",
     form: "Pendu",
     color: { name: "Rouge", hex: "#ef4444" },
-    stats: { hp: 1, power: 1, stars: 0 },
+    stats: { hp: 5, maxhp: 5, power: 1, stars: 0 },
     img: "assets/monster6.png"
   },
   {
@@ -60,7 +60,7 @@ let monsters =  [
     category: "Volant",
     form: "Fumee",
     color: { name: "Cyan", hex: "#06b6d4" },
-    stats: { hp: 10, power: 6, stars: 2 },
+    stats: { hp: 10, maxhp: 10, power: 6, stars: 2 },
     img: "assets/monster7.png"
   }
 ];

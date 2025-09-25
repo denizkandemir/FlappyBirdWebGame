@@ -5,14 +5,14 @@ questions = window.QUESTIONS;
 
 (function () {
 
-
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
-  console.log(questions)
+
   let W = canvas.width,
     H = canvas.height;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
+  let answeredQuestionIds = [];
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -73,7 +73,7 @@ questions = window.QUESTIONS;
     hopCooldown: [0.8, 1.7],
     hopVy: -820,
     groundGravityMul: 0.8,
-    itemEverySec: [6, 10],
+    itemEverySec: [2, 3],
     maxLives: 2,
     battleZoom: 1.18,
     camX: 0.32,
@@ -197,7 +197,7 @@ questions = window.QUESTIONS;
       return [];
     }
   }
-  function saveCollection() {
+  function saveCollection(collection) {
     localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
   }
   function ballIconLossSVG() {
@@ -617,16 +617,12 @@ questions = window.QUESTIONS;
 
   // ---------- Monsters ----------
   function createMonsterCandidate() {
-    // Sadece çarpılmamış canavarlar
     const candidates = availableMonsters.filter(m => !collidedMonsterIds.includes(m.id));
     if (candidates.length === 0) {
       return null;
     }
     const idx = Math.floor(rng() * candidates.length);
     const m = candidates[idx];
-
-    // Seçilen canavarı availableMonsters'tan çıkarmayı kaldır!
-    // availableMonsters = availableMonsters.filter(mon => mon.id !== m.id);
 
     let x = W + 50;
     let y;
@@ -651,6 +647,8 @@ questions = window.QUESTIONS;
       wob: rng() * Math.PI * 2,
       midAirUsed: false,
       img: m.img,
+      maxhp: m.stats?.maxhp ?? m.stats?.hp ?? 1,
+      power: m.stats?.power ?? 1,
     };
   }
 
@@ -663,8 +661,8 @@ questions = window.QUESTIONS;
   }
 
   function categoryIndex(categoryName) {
-  return Categories.indexOf(categoryName);
-}
+    return Categories.indexOf(categoryName);
+  }
 
   function acceptanceFor(mon) {
     const s = starsFor(mon);
@@ -681,20 +679,17 @@ questions = window.QUESTIONS;
     return createMonsterCandidate();
   }
 
- function startBattleIfCollision(mon) {
-  const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
-  if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
-    startBattle({ ...mon });
-    monsters = monsters.filter((mm) => mm !== mon);
-    if (!collidedMonsterIds.includes(mon.id)) {
-      collidedMonsterIds.push(mon.id);
-      // Çarpılan canavarı havuzdan çıkar
-      availableMonsters = availableMonsters.filter(m => m.id !== mon.id);
+  let lastBattledMonster = null;
+
+  function startBattleIfCollision(mon) {
+    const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
+    if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
+      lastBattledMonster = mon; // <-- ekle
+      startBattle({ ...mon });
+      return true;
     }
-    return true;
+    return false;
   }
-  return false;
-}
   const FLOOR_H = 40;
 
   // --- Geometry Dash tarzı bird ---
@@ -794,14 +789,18 @@ questions = window.QUESTIONS;
     state = "battle";
     document.body.classList.add("in-battle");
     captureAttemptsInBattle = 0;
-    battle = { mon: mon, hp: mon.maxhp, maxhp: mon.maxhp, power: mon.power };
-    battleToi.innerHTML = toiPanelHTML();
-    positionBattleOverlay();
+    battle = {
+      mon: mon,
+      hp: mon.maxhp,
+      maxhp: mon.maxhp,
+      power: mon.power
+    }; positionBattleOverlay();
     battleOverlay.classList.add("show");
     questionText.textContent = pickQuestion();
     battleAnswer.value = "";
     captureHint.textContent = "";
     setTimeout(() => battleAnswer.focus(), 40);
+    captureBtn.disabled = !(battle.hp <= activeUnit.power && balls > 0);
   }
   function showFleeAndEnd(consumedLife) {
     anim.monsterLungeT = performance.now() + 220;
@@ -828,6 +827,11 @@ questions = window.QUESTIONS;
       if (lives > 0.5) lives = roundToHalf(lives - 0.5);
       else lives = 0.5;
       updateHUD();
+    }
+    if (lastBattledMonster) {
+      const idx = monsters.indexOf(lastBattledMonster);
+      if (idx !== -1) monsters.splice(idx, 1);
+      lastBattledMonster = null;
     }
     battle = null;
     captureAttemptsInBattle = 0;
@@ -973,23 +977,30 @@ questions = window.QUESTIONS;
     }
   }
   function startWithMonster(id) {
-    const [c, f, k] = id.split("-").map((n) => parseInt(n));
+    // Önce oyunu sıfırla
+    resetGame();
+
+    // monsters dizisinden objeyi bul
+    const monsterObj = monsters.find(m => m.id === id);
+    if (!monsterObj) return; // id bulunamazsa çık
+
+    // Objeyi doğrudan kullan
     const mon = {
-      id: id,
-      name: monsterName(c, f, k),
-      catIdx: c,
-      formIdx: f,
-      colorIdx: k,
-      color: Colors[k].c,
-      eyes: eyeCountFor(id),
-      maxhp: hpForId(c, f, k),
-      power: powerForId(c, f, k),
+      id: monsterObj.id,
+      name: monsterObj.name,
+      category: monsterObj.category,
+      form: monsterObj.form,
+      color: monsterObj.color,
+      stats: monsterObj.stats,
+      img: monsterObj.img,
+      catIdx: categoryIndex(monsterObj.category),
       r: 18,
     };
+
     activeUnit = {
       name: mon.name,
-      hpMax: mon.maxhp,
-      power: mon.power,
+      hpMax: mon.stats.maxhp ?? mon.stats.hp ?? 1,
+      power: mon.stats.power ?? 1,
       isMonster: true,
       monster: mon,
     };
@@ -997,15 +1008,15 @@ questions = window.QUESTIONS;
     score = 0;
     capturesRun = 0;
     lostBattlesRun = 0;
-    control.mode = c === 0 ? "fly" : c === 1 ? "ground" : "ceiling";
+    runMaxLives = activeUnit.hpMax;
+    runPower = activeUnit.power;
+    control.mode = mon.catIdx === 0 ? "fly" : mon.catIdx === 1 ? "ground" : "ceiling";
     control.jumps = 0;
     control.maxJumps = 4;
     control.glide = control.glideMax = 1.0;
     control.hold = false;
     control.ceilingLockY = null;
     control.fastFallTimer = 0;
-    runMaxLives = activeUnit.hpMax;
-    runPower = activeUnit.power;
     updateHUD();
     startScreen.classList.remove("show");
     gameOverEl.classList.remove("show");
@@ -1022,7 +1033,6 @@ questions = window.QUESTIONS;
     }
     pipes = [];
     nextPipeX = 600;
-    // monsters = [];
     monsterTimer = 0;
     items = [];
     itemTimer = 1.5;
@@ -1291,9 +1301,11 @@ questions = window.QUESTIONS;
     // Monsters (AI untouched)
     monsterTimer -= dt;
     if (monsterTimer <= 0) {
-      const newMonster = createMonster();
-      if (newMonster) {
-        monsters.push(newMonster);
+      if (answeredQuestionIds.length < questions.length) { // <-- ekle
+        const newMonster = createMonster();
+        if (newMonster) {
+          monsters.push(newMonster);
+        }
       }
       monsterTimer = randRange(S.spawnEverySec[0], S.spawnEverySec[1]);
     }
@@ -1511,7 +1523,7 @@ questions = window.QUESTIONS;
       const idx = collection.indexOf(mon.id);
       if (idx >= 0) {
         collection.splice(idx, 1);
-        saveCollection();
+        saveCollection(collection);
       }
       selectedMonsterId = null;
       corruptOverlay.classList.remove("show");
@@ -1787,7 +1799,7 @@ questions = window.QUESTIONS;
             const id = battle.mon.id;
             if (!collection.includes(id)) {
               collection.push(id);
-              saveCollection();
+              saveCollection(collection);
               try {
                 renderCollectionPaged(dexStart);
                 renderCollectionPaged(dexEl);
@@ -1901,27 +1913,53 @@ questions = window.QUESTIONS;
     e.preventDefault();
     if (!battle) return;
     anim.playerLungeT = performance.now() + 220;
-    const dmg = dmgInflictedFrom(activeUnit.power);
-    battle.hp = Math.max(0, roundToHalf(battle.hp - dmg));
-    captureHint.textContent = dmg <= 0 ? "Raté…" : `Touché (-${dmg})`;
-    if (battle.hp <= 0) {
-      const enemyStrength = battle.maxhp + battle.power;
-      const myStrength = activeUnit.hpMax + activeUnit.power;
-      let heal = 0.5;
-      if (enemyStrength > myStrength) {
-        const diff = battle.maxhp - lives;
-        heal = roundToHalf(Math.max(0, diff) / 1.5);
-        if (heal < 0.5) heal = 0.5;
+
+    // Sorunun doğru cevabını bul
+    const currentQuestion = questionText.textContent;
+    const qObj = questions.find(q => q.question === currentQuestion);
+    const userAnswer = battleAnswer.value.trim();
+
+    // Cevapları normalize et (küçük harf + boşluksuz)
+    function normalize(s) {
+      return String(s).toLowerCase().replace(/\s+/g, "");
+    }
+
+    if (!qObj || normalize(userAnswer) !== normalize(qObj.answer)) {
+      if (!answeredQuestionIds.includes(qObj.id)) {
+        answeredQuestionIds.push(qObj.id);
       }
-      lives = Math.min(activeUnit.hpMax, roundToHalf(lives + heal));
-      updateHUD();
-      showFleeAndEnd(false);
+      captureHint.textContent = "Wrong answer! Battle ended.";
+      setTimeout(() => {
+        showFleeAndEnd(false);
+      }, 900);
       return;
     }
+
+    if (qObj && normalize(userAnswer) === normalize(qObj.answer)) {
+      if (!answeredQuestionIds.includes(qObj.id)) {
+        answeredQuestionIds.push(qObj.id);
+      }
+    }
+
+    updateHUD();
+    battleToi.innerHTML = toiPanelHTML();
+
+    // Canavarın canını azalt
+    battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
+
+    if (battle.hp <= 0) {
+      captureHint.textContent = "Monster is weak enough to be captured! Use the Capture button.";
+      setTimeout(() => {
+        showFleeAndEnd(false);
+      }, 1200);
+      return;
+    }
+
+    // Saldırı başarılı, yeni soru gelsin
+    captureHint.textContent = "Correct! You attacked the monster.";
     questionText.textContent = pickQuestion();
     battleAnswer.value = "";
     setTimeout(() => battleAnswer.focus(), 30);
-    enemyAttack();
   });
   fleeBtn.addEventListener("click", () => {
     ++lostBattlesRun;
@@ -1929,41 +1967,60 @@ questions = window.QUESTIONS;
   });
   captureBtn.addEventListener("click", () => {
     if (!battle || anim.capture.active) return;
+    // Canavarın canı oyuncunun gücünden fazla ise capture yapılamaz
+    if (battle.hp > activeUnit.power) {
+      captureHint.textContent = "Monster is too strong to capture!";
+      return;
+    }
     if (balls <= 0) {
-      captureHint.textContent = "Pas de balle !";
+      captureHint.textContent = "No balls left!";
       return;
     }
     balls -= 1;
     saveBalls();
     updateHUD();
     battleToi.innerHTML = toiPanelHTML();
-    let p = captureProbability(
-      activeUnit.power,
-      lives,
-      battle.power,
-      battle.hp,
-      battle.maxhp
-    );
-    // Apply per-attempt bonus before this throw
-    p = Math.min(0.99, p + captureAttemptsInBattle * CAPTURE_ATTEMPT_BONUS);
-    const roll = rng();
-    // Count this attempt after computing p
-    captureAttemptsInBattle += 1;
-    const success = roll < p;
-    // Start capture animation
+
+    // Capture animasyonu başlat
     const pos = getBattlePositions();
     anim.capture.active = true;
     anim.capture.phase = "fly";
-    anim.capture.success = success;
+    anim.capture.success = true;
     anim.capture.t0 = performance.now();
     anim.capture.t1 = anim.capture.t0 + 520;
     anim.capture.fromX = pos.playerScreenX + 20;
     anim.capture.fromY = pos.playerScreenY - 30;
     anim.capture.toX = pos.enemyBaseX - 10;
     anim.capture.toY = pos.enemyBaseY - 10;
-    captureHint.textContent = success
-      ? `Tentative… (${Math.round(p * 100)}%)`
-      : `Tentative… (${Math.round(p * 100)}%)`;
+    captureHint.textContent = "Tentative… (100%)";
+
+    // Capture animasyonu bitince canavarı koleksiyona ekle ve savaşı bitir
+    setTimeout(() => {
+      // Önce battle hâlâ varsa işlemleri yap
+      if (battle && battle.mon) {
+        const id = battle.mon.id;
+        if (!collection.includes(id)) {
+          collection.push(id);
+          saveCollection(collection);
+          try {
+            renderCollectionPaged(dexStart);
+            renderCollectionPaged(dexEl);
+          } catch (e) { }
+        }
+        capturesRun++;
+        if (capturesRun > bestCaptInRun) {
+          bestCaptInRun = capturesRun;
+          localStorage.setItem(
+            "angryflappy_bestcaprun",
+            String(bestCaptInRun)
+          );
+        }
+        captureHint.textContent = "Monster captured!";
+      }
+      setTimeout(() => {
+        showFleeAndEnd(false);
+      }, 900);
+    }, 900);
   });
 
   function enemyAttack() {
