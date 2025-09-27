@@ -882,8 +882,11 @@ questions = window.QUESTIONS;
   });
 
   function pickQuestion() {
-    const idx = Math.floor(Math.random() * questions.length);
-    return questions[idx]?.question || "did not find question";
+    const unanswered = questions.filter(q => !answeredQuestionIds.includes(q.id));
+    console.log("Unanswered questions:", answeredQuestionIds);  
+    if (unanswered.length === 0) return "No more questions!";
+    const idx = Math.floor(Math.random() * unanswered.length);
+    return unanswered[idx].question;
   }
 
   // ---------- Input ----------
@@ -2056,19 +2059,22 @@ questions = window.QUESTIONS;
   // ---------- Collection rendering ----------
   function renderCollectionPaged(container) {
     container.innerHTML = "";
-    const list = collection.slice();
+    const list = loadCollection().slice();
     const scope = container.closest(".panel") || document;
     const bySel = scope.querySelector("#sortByStart, #sortBy");
     const dirSel = scope.querySelector("#sortDirStart, #sortDir");
     function computeList() {
       const by = bySel ? bySel.value : "alpha";
       const dir = dirSel ? dirSel.value : "asc";
+
       const arr = list.map((id) => {
+        const monsterObj = availableMonsters.find(m => m.id === id);
         const [c, f, k] = id.split("-").map((n) => parseInt(n));
-        const name = monsterName(c, f, k);
-        const hp = hpForId(c, f, k);
-        const power = powerForId(c, f, k);
-        return { id, c, f, k, name, hp, power, level: hp + power };
+        const name = monsterObj ? monsterObj.name : monsterName(c, f, k);
+        const hp = monsterObj ? monsterObj.stats.maxhp ?? monsterObj.stats.hp : hpForId(c, f, k);
+        const power = monsterObj ? monsterObj.stats.power : powerForId(c, f, k);
+        const img = monsterObj ? monsterObj.img : "assets/default.png";
+        return { id, c, f, k, name, hp, power, level: hp + power, img };
       });
       arr.sort((a, b) => {
         let v = 0;
@@ -2097,6 +2103,7 @@ questions = window.QUESTIONS;
       }
       for (const e of arr) {
         const col = Colors[e.k].c;
+        console.log(e);
         const mon = {
           id: e.id,
           name: e.name,
@@ -2108,6 +2115,7 @@ questions = window.QUESTIONS;
           r: 18,
           maxhp: e.hp,
           power: e.power,
+          img: e.img,
         };
         const card = document.createElement("div");
         card.className = "card selectable";
@@ -2118,7 +2126,7 @@ questions = window.QUESTIONS;
         img.width = 56;
         img.height = 56;
         img.style.imageRendering = "pixelated";
-        img.src = renderMonsterPreview(mon, 56);
+        img.src = mon.img;
         thumb.appendChild(img);
         const box = document.createElement("div");
         const title = document.createElement("div");
