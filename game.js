@@ -883,7 +883,7 @@ questions = window.QUESTIONS;
 
   function pickQuestion() {
     const unanswered = questions.filter(q => !answeredQuestionIds.includes(q.id));
-    console.log("Unanswered questions:", answeredQuestionIds);  
+    console.log("Unanswered questions:", answeredQuestionIds);
     if (unanswered.length === 0) return "No more questions!";
     const idx = Math.floor(Math.random() * unanswered.length);
     return unanswered[idx].question;
@@ -1605,21 +1605,46 @@ questions = window.QUESTIONS;
       if (state === "playing") drawStars(m);
     }
 
-    // --- TRAIL ve bird efekti sadece player ile oynanırken çizilsin ---
     if (!activeUnit.isMonster) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
-      for (let i = 0; i < bird.trail.length; i++) {
-        const tr = bird.trail[i];
-        const a = Math.max(0, 0.35 - i * 0.015);
+
+      const trailLength = 12; // Daha kısa bir kuyruk için mesela 12
+
+      for (let i = 0; i < trailLength; i++) {
+        // Şeffaflık kuşun arkasına gittikçe azalsın
+        const a = Math.max(0, 0.35 - i * 0.025);
         if (a <= 0) continue;
-        ctx.fillStyle = `rgba(0,194,255,${a})`; // Neon mavi
+
+        // X ekseni: kuşun arkasında sabit
+        const baseX = bird.x - 18 - i * 8;
+
+        // Y ekseni: kuşun Y’sine göre dalgalansın
+        const waveY = Math.sin(performance.now() / 250 + i * 0.7) * 8; // 8 px yukarı aşağı dalga
+
+        ctx.fillStyle = `rgba(0,194,255,${a})`;
+
+        // 8–9 px çap için radius 4 veya 4.5
         ctx.beginPath();
-        ctx.arc(tr.x, tr.y, 6, 0, Math.PI * 2);
+        ctx.arc(baseX, bird.y + waveY, 4.5, 0, Math.PI * 2);
         ctx.fill();
       }
+
       ctx.restore();
-      drawBird();
+
+      // Hem img hem eski efektli kuş çizimi
+      const birdImg = drawWorldNormal._birdImg || new Image();
+      if (!drawWorldNormal._birdImgLoaded) {
+        birdImg.src = "assets/bird.png";
+        birdImg.onload = () => { drawWorldNormal._birdImgLoaded = true; };
+        drawWorldNormal._birdImg = birdImg;
+      }
+      if (birdImg.complete && birdImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.translate(bird.x, bird.y);
+        ctx.drawImage(birdImg, -S.birdR, -S.birdR, S.birdR * 2, S.birdR * 2);
+        ctx.restore();
+      }
     } else {
       // Sadece monster'ın resmi çizilsin
       bird.trail = []; // Monster ile oynarken trail sıfırlansın
@@ -1662,6 +1687,15 @@ questions = window.QUESTIONS;
   }
 
   function getBattlePositions() {
+    // Ekrandaki monster'ın pozisyonunu kullan
+    if (lastBattledMonster) {
+      return {
+        enemyBaseX: lastBattledMonster.x,
+        enemyBaseY: lastBattledMonster.y,
+        playerScreenX: bird.x,
+        playerScreenY: bird.y
+      };
+    }
     const enemyBaseX = W * 0.72,
       enemyBaseY = H * 0.55;
     const playerScreenX = W * 0.18,
@@ -1671,84 +1705,7 @@ questions = window.QUESTIONS;
 
   function drawBattleOverlays() {
     if (!battle) return;
-    // Player box
-    {
-      const boxW = 340,
-        boxH = 110,
-        boxX = 20,
-        boxY = 20;
-      drawGBPanel(boxX, boxY, boxW, boxH);
-      ctx.fillStyle = "#0f380f";
-      ctx.font = "16px monospace";
-      ctx.fillText(activeUnit.name || "Dresseur", boxX + 14, boxY + 28);
-      for (let i = 0; i < activeUnit.hpMax; i++) {
-        const x = boxX + 14 + i * 18;
-        const y = boxY + 48;
-        const frac = Math.max(0, Math.min(1, lives - i));
-        drawGBHeartFrac(x, y, frac);
-      }
-      for (let i = 0; i < Math.min(10, activeUnit.power); i++) {
-        const x = boxX + 14 + i * 14;
-        const y = boxY + 78;
-        drawGBBolt(x, y);
-      }
-      ctx.save();
-      const bx = boxX + boxW - 90,
-        by = boxY + 70;
-      ctx.translate(bx, by);
-      ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "#fff";
-      ctx.fill();
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(-10, -10, 20, 10);
-      ctx.clip();
-      ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "#ef4444";
-      ctx.fill();
-      ctx.restore();
-      ctx.strokeStyle = "#111";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-10, 0);
-      ctx.lineTo(10, 0);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(0, 0, 3.8, 0, Math.PI * 2);
-      ctx.fillStyle = "#fff";
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-      ctx.fillStyle = "#0f380f";
-      ctx.font = "16px monospace";
-      ctx.fillText("x " + balls, boxX + boxW - 64, boxY + 76);
-    }
-
-    // Enemy box
-    {
-      const boxW = 340,
-        boxH = 110,
-        boxX = W - 20 - boxW,
-        boxY = 20;
-      drawGBPanel(boxX, boxY, boxW, boxH);
-      ctx.fillStyle = "#0f380f";
-      ctx.font = "16px monospace";
-      ctx.fillText(battle.mon.name, boxX + 14, boxY + 28);
-      for (let i = 0; i < battle.maxhp; i++) {
-        const x = boxX + 14 + i * 18;
-        const y = boxY + 48;
-        const frac = Math.max(0, Math.min(1, battle.hp - i));
-        drawGBHeartFrac(x, y, frac);
-      }
-      for (let i = 0; i < Math.min(10, battle.power); i++) {
-        const x = boxX + 14 + i * 14;
-        const y = boxY + 78;
-        drawGBBolt(x, y);
-      }
-    }
-
+ 
     const t = performance.now();
     const monLunge =
       t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
@@ -1896,25 +1853,6 @@ questions = window.QUESTIONS;
       fleeBtn.disabled = false;
       captureBtn.disabled = false;
     }
-  }
-  function drawGBBolt(x, y) {
-    ctx.fillStyle = "#0f380f";
-    const pts = [
-      [0, 0],
-      [6, 0],
-      [2, 8],
-      [8, 8],
-      [0, 16],
-      [2, 10],
-      [-4, 10],
-    ];
-    ctx.beginPath();
-    ctx.moveTo(x + pts[0][0], y + pts[0][1]);
-    for (let i = 1; i < pts.length; i++) {
-      ctx.lineTo(x + pts[i][0], y + pts[i][1]);
-    }
-    ctx.closePath();
-    ctx.fill();
   }
 
   // ---------- Turn buttons ----------
