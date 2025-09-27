@@ -11,6 +11,7 @@ questions = window.QUESTIONS;
   let W = canvas.width,
     H = canvas.height;
   let availableMonsters = monsters.slice();
+  console.log({ monsters });
   let collidedMonsterIds = [];
   let answeredQuestionIds = [];
 
@@ -977,14 +978,13 @@ questions = window.QUESTIONS;
     }
   }
   function startWithMonster(id) {
-    // Önce oyunu sıfırla
     resetGame();
 
     // monsters dizisinden objeyi bul
-    const monsterObj = monsters.find(m => m.id === id);
-    if (!monsterObj) return; // id bulunamazsa çık
+    const monsterObj = availableMonsters.find(m => m.id === id);
+    if (!monsterObj) return;
 
-    // Objeyi doğrudan kullan
+    // Monster objesini kullan
     const mon = {
       id: monsterObj.id,
       name: monsterObj.name,
@@ -994,23 +994,28 @@ questions = window.QUESTIONS;
       stats: monsterObj.stats,
       img: monsterObj.img,
       catIdx: categoryIndex(monsterObj.category),
-      r: 18,
+      r: monsterObj.r || S.birdR,
+      maxhp: monsterObj.stats?.maxhp ?? monsterObj.stats?.hp ?? S.maxLives,
+      power: monsterObj.stats?.power ?? playerPower,
     };
 
+    // Aktif karakteri seçilen monster olarak ayarla
     activeUnit = {
       name: mon.name,
-      hpMax: mon.stats.maxhp ?? mon.stats.hp ?? 1,
-      power: mon.stats.power ?? 1,
+      hpMax: mon.maxhp,
+      power: mon.power,
       isMonster: true,
       monster: mon,
     };
+
+    bird.r = mon.r;
     lives = activeUnit.hpMax;
     score = 0;
     capturesRun = 0;
     lostBattlesRun = 0;
     runMaxLives = activeUnit.hpMax;
     runPower = activeUnit.power;
-    control.mode = mon.catIdx === 0 ? "fly" : mon.catIdx === 1 ? "ground" : "ceiling";
+    control.mode = "fly"; // Her zaman klasik uçan mod
     control.jumps = 0;
     control.maxJumps = 4;
     control.glide = control.glideMax = 1.0;
@@ -1024,13 +1029,7 @@ questions = window.QUESTIONS;
     bird.vy = 0;
     bird.tilt = 0;
     bird.invulnUntil = 0;
-    if (control.mode === "ground") {
-      bird.y = world.groundY - bird.r - 1;
-    } else if (control.mode === "ceiling") {
-      bird.y = bird.r + 2;
-    } else {
-      bird.y = H / 2;
-    }
+    bird.y = H / 2;
     pipes = [];
     nextPipeX = 600;
     monsterTimer = 0;
@@ -1043,9 +1042,12 @@ questions = window.QUESTIONS;
   }
   if (sendBtnStart) {
     sendBtnStart.addEventListener("click", () => {
+      console.log({ selectedMonsterId });
       if (selectedMonsterId) startWithMonster(selectedMonsterId);
+      console.log({ selectedMonsterId });
     });
   }
+
   if (sendBtnOver) {
     sendBtnOver.addEventListener("click", () => {
       if (gameOverEl) gameOverEl.classList.remove("show");
@@ -1130,7 +1132,6 @@ questions = window.QUESTIONS;
     bird.trail = [];
     pipes = [];
     nextPipeX = 600;
-    // monsters = [];
     monsterTimer = 0;
     items = [];
     itemTimer = 1.5;
@@ -1600,24 +1601,29 @@ questions = window.QUESTIONS;
       drawMonster(m);
       if (state === "playing") drawStars(m);
     }
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    for (let i = 0; i < bird.trail.length; i++) {
-      const tr = bird.trail[i];
-      const a = Math.max(0, 0.35 - i * 0.015);
-      if (a <= 0) continue;
-      ctx.fillStyle = `rgba(0,194,255,${a})`; // Neon mavi
-      ctx.beginPath();
-      ctx.arc(tr.x, tr.y, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-    if (activeUnit.isMonster) {
+
+    // --- TRAIL ve bird efekti sadece player ile oynanırken çizilsin ---
+    if (!activeUnit.isMonster) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < bird.trail.length; i++) {
+        const tr = bird.trail[i];
+        const a = Math.max(0, 0.35 - i * 0.015);
+        if (a <= 0) continue;
+        ctx.fillStyle = `rgba(0,194,255,${a})`; // Neon mavi
+        ctx.beginPath();
+        ctx.arc(tr.x, tr.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      drawBird();
+    } else {
+      // Sadece monster'ın resmi çizilsin
+      bird.trail = []; // Monster ile oynarken trail sıfırlansın
+      bird.r = activeUnit.monster.r || S.birdR;
       const me = activeUnit.monster;
       const pm = { ...me, x: bird.x, y: bird.y, r: me.r };
       drawMonster(pm);
-    } else {
-      drawBird();
     }
 
     const tvh = performance.now();
