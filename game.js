@@ -54,9 +54,29 @@ questions = window.QUESTIONS;
   const captureHint = document.getElementById("captureHint");
   const battleToi = document.getElementById("battleToi");
 
-  const playerName = "Dresseur";
   let playerPower = 2;
-  let activeUnit = { name: playerName, hpMax: 2, power: 2, isMonster: false };
+  let profile = {};
+  let playerFullName = "Dresseur";
+  let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false };
+
+  window.addEventListener("af:login:done", () => {
+    try {
+      profile = JSON.parse(localStorage.getItem("__profile__") || "{}");
+       playerFullName = profile.fullName || "Dresseur";
+      if (activeUnit && !activeUnit.isMonster) {
+        activeUnit.name = playerFullName;
+      }
+      updateHUD();
+    } catch (e) {
+      profile = {};
+      if (activeUnit && !activeUnit.isMonster) {
+        activeUnit.name = playerFullName;
+      }
+      updateHUD();
+    }
+  });
+
+  console.log({ activeUnit });
   let resumeAt = 0;
 
   const S = {
@@ -682,6 +702,8 @@ questions = window.QUESTIONS;
 
   let lastBattledMonster = null;
 
+
+
   function startBattleIfCollision(mon) {
     const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
     if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
@@ -783,8 +805,33 @@ questions = window.QUESTIONS;
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
+  function fillBattleMenuDetails(mon) {
+    console.log(mon);
+    console.log(activeUnit);
+    const playerName = document.getElementById("playerName");
+    playerName.textContent = activeUnit.name || "Dresseur";
+
+    const playerHp = document.getElementById("playerHp");
+    const playerPowerEl = document.getElementById("playerPower");
+    const monName = document.getElementById("monsterName");
+    const monHp = document.getElementById("monsterHp");
+    const monPowerEl = document.getElementById("monsterPower");
+
+    monName.textContent = mon.name || "Dresseur";
+
+    const monsterHpVal = (battle && battle.hp != null ? battle.hp : mon.maxhp);
+    monHp.textContent = "❤️".repeat(Math.round(monsterHpVal));
+
+    monPowerEl.textContent = "⚡".repeat(mon.power || 1);
+
+    // Oyuncu HP'si de kalp ile
+    playerHp.textContent = "❤️".repeat(Math.round(lives));
+    playerPowerEl.textContent = "⚡".repeat(activeUnit.power);
+  }
+
   // ---------- Battle flow ----------
   function startBattle(mon) {
+    fillBattleMenuDetails(mon);
     const hudWrap = document.getElementById("hudWrap");
     if (hudWrap) hudWrap.style.display = "none"; // HUD toggle on battle
     state = "battle";
@@ -1114,8 +1161,10 @@ questions = window.QUESTIONS;
       control.glide = control.glideMax = 1.0;
       control.hold = false;
     }
+    
+    updateHUD();
     activeUnit = {
-      name: playerName,
+      name: playerFullName, 
       hpMax: S.maxLives,
       power: playerPower,
       isMonster: false,
@@ -1705,7 +1754,7 @@ questions = window.QUESTIONS;
 
   function drawBattleOverlays() {
     if (!battle) return;
- 
+
     const t = performance.now();
     const monLunge =
       t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
@@ -1893,7 +1942,7 @@ questions = window.QUESTIONS;
 
     // Canavarın canını azalt
     battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
-
+    fillBattleMenuDetails(battle.mon);
     if (battle.hp <= 0) {
       captureHint.textContent = "Monster is weak enough to be captured! Use the Capture button.";
       setTimeout(() => {

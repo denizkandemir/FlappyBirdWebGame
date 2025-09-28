@@ -533,6 +533,35 @@ select{
   pointer-events: auto;
   display: none;
 }
+
+.batlle-top-menu {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+}
+
+.battle-top-player-menu {
+    background: rgba(10, 20, 40, 0.95);
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 0 auto;
+    box-shadow: 0 0 15px #00ffff;
+    color: #fff;
+    flex: 1;
+}
+
+.top-menu-p {
+    margin: 0;
+    padding: 5px;
+}
+
+.battle-top-text-container {
+    display: flex;
+    gap: 6px;
+}
+
 .dialog-row {
   display: flex;
   gap: 8px;

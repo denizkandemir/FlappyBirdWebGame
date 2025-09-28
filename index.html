@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -25,8 +26,8 @@
               <stop offset="0%" stop-color="#00fff0" stop-opacity="0.9"></stop>
               <stop offset="60%" stop-color="#00d4ff" stop-opacity="0.7"></stop>
               <stop offset="100%" stop-color="#00a3ff" stop-opacity="0.0"></stop>
-           </radialgradient>
-           <lineargradient id="gRing" x1="0%" x2="100%" y1="0%" y2="100%">
+            </radialgradient>
+            <lineargradient id="gRing" x1="0%" x2="100%" y1="0%" y2="100%">
               <stop offset="0%" stop-color="#66fff9"></stop>
               <stop offset="50%" stop-color="#a067ff"></stop>
               <stop offset="100%" stop-color="#ff4dbe"></stop>
@@ -45,6 +46,36 @@
     <div id="pokedexStart" style="display:none"></div>
     <div class="battle-overlay" id="battleOverlay">
       <div class="pixel-panel battle-toi hidden" id="battleToi"></div>
+      <div class="batlle-top-menu">
+        <div class="battle-top-player-menu">
+          <div class="battle-top-text-container">
+            <p class="player-name top-menu-p"> Player : </p>
+            <p class="player-name top-menu-p" id="playerName"></p>
+          </div>
+          <div class="battle-top-text-container">
+            <p class="player-power top-menu-p"> Power : </p>
+            <p class="player-power top-menu-p" id="playerPower"></p>
+          </div>
+          <div class="battle-top-text-container">
+            <p class="player-hp top-menu-p"> HP : </p>
+            <p class="player-hp top-menu-p" id="playerHp"></p>
+          </div>
+        </div>
+        <div class="battle-top-player-menu">
+          <div class="battle-top-text-container">
+            <p class="monster-name top-menu-p"> Monster : </p>
+            <p class="monster-name top-menu-p" id="monsterName"></p>
+          </div>
+          <div class="battle-top-text-container">
+            <p class="monster-power top-menu-p"> Power : </p>
+            <p class="monster-power top-menu-p" id="monsterPower"></p>
+          </div>
+          <div class="battle-top-text-container">
+            <p class="monster-hp top-menu-p"> HP : </p>
+            <p class="monster-hp top-menu-p" id="monsterHp"></p>
+          </div>
+        </div>
+      </div>
       <div class="battle-dialog pixel-panel" id="dialogTurn">
         <div class="dialog-row">
           <div id="battleQuestionLabel"><strong id="questionText"></strong></div>
@@ -60,79 +91,80 @@
           <span class="hint" id="captureHint"></span>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="overlay show" id="splash"
-    style="background:#0f380f;display:flex;align-items:center;justify-content:center;">
-    <img alt="BNI" id="splashLogo" src="assets/logo_bni.png"
-      style="width:min(320px,60vw);image-rendering:pixelated;transform:translateY(-120%);filter:drop-shadow(0 12px 0 rgba(0,0,0,.3))" />
-    <audio id="bootSound" preload="auto"></audio>
-  </div>
-  <div class="overlay synth-bg" id="startScreen">
-    <div class="panel gb-panel">
-      <div style="display:flex;justify-content:center;margin:10px 0 16px"><img alt="Title" class="logo-title"
-          src="assets/antiacor_gameboy.png" /></div>
-      <div class="press-start blink">PRESS START</div>
-      <div class="row center">
-        <button class="btn gb-btn" id="startBtn">START</button>
-      </div>
-    </div>
-  </div>
-  <div class="overlay synth-bg" id="corruptOverlay">
-    <div class="panel pixel-panel gb-panel">
-      <h2 class="gb-h2" id="corruptTitle">Corrupted Monster</h2>
-      <div class="corrupt-visual" id="corruptVisual" style="display:flex;justify-content:center;margin:8px 0 12px">
-      </div>
-      <div class="row center">
-        <button class="btn gb-btn danger" id="trashBtn">DELETE</button>
-        <button class="btn gb-btn primary" id="saveBtn">USE 0 BALLS</button>
-      </div>
-    </div>
-  </div>
-  <div class="overlay synth-bg" id="gameOver">
-    <div class="panel pixel-panel gb-panel">
-      <h2 class="gb-h2">GAME OVER</h2>
-      <div class="score-grid">
-        <div class="score-col">
-          <div class="score-title">— LAST RUN —</div>
-          <div class="score-row"><span>Distance:</span> <b id="prevDistance">0 m</b></div>
-          <div class="score-row"><span>Captures:</span> <b id="prevCaptures">0</b></div>
-          <div class="score-row"><span>Score:</span> <b id="prevScore">0</b></div>
-        </div>
-        <div class="score-col">
-          <div class="score-title">— BEST SCORE —</div>
-          <div class="score-row"><span>Distance:</span> <b id="bestDistance">0 m</b></div>
-          <div class="score-row"><span>Captures:</span> <b id="bestCaptures">0</b></div>
-          <div class="score-row"><span>Score:</span> <b id="bestScoreVal">0</b></div>
-        </div>
-      </div>
-      <div class="row" id="sortControls" style="margin:10px 0;">
-        <select class="sortSel" id="sortBy">
-          <option value="alpha">Sort: Alphabetical</option>
-          <option value="level">Sort: Overall level</option>
-          <option value="power">Sort: Power</option>
-          <option value="hp">Sort: HP</option>
-        </select>
-        <select class="sortSel" id="sortDir">
-          <option value="asc">Order: Asc</option>
-          <option value="desc">Order: Desc</option>
-        </select>
-      </div>
-      <h3 class="gb-h3">Captured Collection</h3>
-      <div class="dex" id="pokedex"></div>
-      <div class="row center">
-        <button class="btn gb-btn" id="retryBtn">RETRY WITHOUT MONSTER</button>
-        <button class="btn gb-btn ghost" id="sendBtnOver">SEND MONSTER</button>
-      </div>
-    </div>
-  </div>
 
-  <script src="saves/saveAdapter.js"></script>
-  <script src="auth/login.js"></script>
-  <script> window.addEventListener("load", () => { if (window.AF_showLogin) AF_showLogin(); });</script>
+    </div>
+    <div class="overlay show" id="splash"
+      style="background:#0f380f;display:flex;align-items:center;justify-content:center;">
+      <img alt="BNI" id="splashLogo" src="assets/logo_bni.png"
+        style="width:min(320px,60vw);image-rendering:pixelated;transform:translateY(-120%);filter:drop-shadow(0 12px 0 rgba(0,0,0,.3))" />
+      <audio id="bootSound" preload="auto"></audio>
+    </div>
+    <div class="overlay synth-bg" id="startScreen">
+      <div class="panel gb-panel">
+        <div style="display:flex;justify-content:center;margin:10px 0 16px"><img alt="Title" class="logo-title"
+            src="assets/antiacor_gameboy.png" /></div>
+        <div class="press-start blink">PRESS START</div>
+        <div class="row center">
+          <button class="btn gb-btn" id="startBtn">START</button>
+        </div>
+      </div>
+    </div>
+    <div class="overlay synth-bg" id="corruptOverlay">
+      <div class="panel pixel-panel gb-panel">
+        <h2 class="gb-h2" id="corruptTitle">Corrupted Monster</h2>
+        <div class="corrupt-visual" id="corruptVisual" style="display:flex;justify-content:center;margin:8px 0 12px">
+        </div>
+        <div class="row center">
+          <button class="btn gb-btn danger" id="trashBtn">DELETE</button>
+          <button class="btn gb-btn primary" id="saveBtn">USE 0 BALLS</button>
+        </div>
+      </div>
+    </div>
+    <div class="overlay synth-bg" id="gameOver">
+      <div class="panel pixel-panel gb-panel">
+        <h2 class="gb-h2">GAME OVER</h2>
+        <div class="score-grid">
+          <div class="score-col">
+            <div class="score-title">— LAST RUN —</div>
+            <div class="score-row"><span>Distance:</span> <b id="prevDistance">0 m</b></div>
+            <div class="score-row"><span>Captures:</span> <b id="prevCaptures">0</b></div>
+            <div class="score-row"><span>Score:</span> <b id="prevScore">0</b></div>
+          </div>
+          <div class="score-col">
+            <div class="score-title">— BEST SCORE —</div>
+            <div class="score-row"><span>Distance:</span> <b id="bestDistance">0 m</b></div>
+            <div class="score-row"><span>Captures:</span> <b id="bestCaptures">0</b></div>
+            <div class="score-row"><span>Score:</span> <b id="bestScoreVal">0</b></div>
+          </div>
+        </div>
+        <div class="row" id="sortControls" style="margin:10px 0;">
+          <select class="sortSel" id="sortBy">
+            <option value="alpha">Sort: Alphabetical</option>
+            <option value="level">Sort: Overall level</option>
+            <option value="power">Sort: Power</option>
+            <option value="hp">Sort: HP</option>
+          </select>
+          <select class="sortSel" id="sortDir">
+            <option value="asc">Order: Asc</option>
+            <option value="desc">Order: Desc</option>
+          </select>
+        </div>
+        <h3 class="gb-h3">Captured Collection</h3>
+        <div class="dex" id="pokedex"></div>
+        <div class="row center">
+          <button class="btn gb-btn" id="retryBtn">RETRY WITHOUT MONSTER</button>
+          <button class="btn gb-btn ghost" id="sendBtnOver">SEND MONSTER</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="saves/saveAdapter.js"></script>
+    <script src="auth/login.js"></script>
+    <script> window.addEventListener("load", () => { if (window.AF_showLogin) AF_showLogin(); });</script>
     <script src="questions.js"></script>
-  <script src="monsters.js"></script>
-  <script src="game.js"></script>
+    <script src="monsters.js"></script>
+    <script src="game.js"></script>
   </div>
 </body>
+
 </html>
