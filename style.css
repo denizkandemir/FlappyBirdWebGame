@@ -379,7 +379,6 @@ select{
 /* Corruption görsel çerçevesi neon */
 .corrupt-visual img{
   background: rgba(8,14,24,.55);
-  border: 2px solid rgba(255,46,172,.6);
   box-shadow: 0 0 20px rgba(255,46,172,.35), 0 6px 0 rgba(0,0,0,.6);
 }
 
@@ -742,7 +741,7 @@ img {
   image-rendering: pixelated;
   width: 128px;
   height: 128px;
-  border: 6px solid #ffffff;
+  padding: 5px;
   box-shadow: 0 0 0 4px var(--gb1), 0 6px 0 var(--gb1);
   background: var(--gb4);
 }
@@ -871,4 +870,37 @@ img {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+.monster-delete,
+.monster-save {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 0 8px #00ffff;
+  border: 2px solid;
+}
+
+.monster-save {
+  background-color: #00ffff;
+  border-color: #00ffff;
+  color: #000;
+}
+.monster-save:hover {
+  background-color: #00cccc;
+}
+
+.monster-delete {
+  background-color: #ff4b4b;
+  border-color: #ff4b4b;
+  color: #000;
+  box-shadow: 0 0 8px #ff4b4b;
+}
+.monster-delete:hover {
+  background-color: #ff1b1b;
 }

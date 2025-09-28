@@ -58,7 +58,7 @@ questions = window.QUESTIONS;
   let playerPower = 2;
   let profile = {};
   let playerFullName = "Dresseur";
-  let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false };
+  let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false, mon: null };
 
   window.addEventListener("af:login:done", () => {
     try {
@@ -703,8 +703,6 @@ questions = window.QUESTIONS;
 
   let lastBattledMonster = null;
 
-
-
   function startBattleIfCollision(mon) {
     const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
     if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
@@ -719,52 +717,18 @@ questions = window.QUESTIONS;
   // --- Geometry Dash tarzı bird ---
   function drawBird(scale = 1) {
     const size = S.birdR * 2 * scale;
-    const t = performance.now() / 1000;
-    const bob = Math.sin(t * 6) * 3 * scale;
-    const rot = bird.tilt * 0.15;
-
-    ctx.save();
-    ctx.translate(bird.x, bird.y + bob);
-    ctx.rotate(rot);
-
-    // Glow arkası
-    const halo = ctx.createRadialGradient(0, 0, size * 0.25, 0, 0, size * 1.15);
-    halo.addColorStop(0, "rgba(34,231,255,0.18)");
-    halo.addColorStop(1, "rgba(34,231,255,0)");
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 1.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Kare gövde
-    ctx.fillStyle = "rgba(10,18,26,0.96)";
-    ctx.fillRect(-size / 2, -size / 2, size, size);
-
-    // Neon çerçeve
-    ctx.strokeStyle = "#22e7ff";
-    ctx.lineWidth = 4 * scale;
-    ctx.shadowBlur = 16 * scale;
-    ctx.shadowColor = "#66f7ff";
-    ctx.strokeRect(-size / 2 + 0.5, -size / 2 + 0.5, size - 1, size - 1);
-    ctx.shadowBlur = 0;
-
-    // Çapraz çizgiler
-    ctx.strokeStyle = "rgba(34,231,255,0.32)";
-    ctx.lineWidth = 2 * scale;
-    ctx.beginPath();
-    ctx.moveTo(-size / 2, -size / 2);
-    ctx.lineTo(size / 2, size / 2);
-    ctx.moveTo(size / 2, -size / 2);
-    ctx.lineTo(-size / 2, size / 2);
-    ctx.stroke();
-
-    // Yüz
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(-size * 0.28, -size * 0.18, 6, 8);
-    ctx.fillRect(-size * 0.08, -size * 0.18, 6, 8);
-    ctx.fillRect(-size * 0.28, size * 0.12, size * 0.56, 4);
-
-    ctx.restore();
+    const birdImg = drawBird._birdImg || new window.Image();
+    if (!drawBird._birdImgLoaded) {
+      birdImg.src = "assets/bird.png";
+      birdImg.onload = () => { drawBird._birdImgLoaded = true; };
+      drawBird._birdImg = birdImg;
+    }
+    if (birdImg.complete && birdImg.naturalWidth > 0) {
+      ctx.save();
+      ctx.translate(bird.x, bird.y);
+      ctx.drawImage(birdImg, -size / 2, -size / 2, size, size);
+      ctx.restore();
+    }
   }
 
   // --- DRAW LOOP ENTEGRASYONU ---
@@ -1532,7 +1496,7 @@ questions = window.QUESTIONS;
   }
 
   function triggerGameOver() {
-    if (activeUnit && activeUnit.isMonster && activeUnit.monster) {
+    if (activeUnit && activeUnit.isMonster) {
       showCorruptionChoice(activeUnit.monster);
       return;
     }
@@ -1600,19 +1564,19 @@ questions = window.QUESTIONS;
       return;
     }
     const level = (mon.maxhp || 0) + (mon.power || 0);
-    const cost = level * 2 + 5;
-    corruptTitle.textContent = `${mon.name} est corrompu`;
+    const cost = level;
+    corruptTitle.textContent = `${mon.name} is corrupted`;
     corruptVisual.innerHTML = "";
     if (trashBtn) trashBtn.style.display = "";
     try {
       const img = new Image();
       img.alt = mon.name;
-      img.src = renderMonsterPreview(mon, 112);
+      img.src = mon.img || "";
       corruptVisual.appendChild(img);
     } catch (e) {
       /* ignore */
     }
-    saveBtn.textContent = `UTILISER ${cost} BALLS`;
+    saveBtn.textContent = `USE ${cost} BALLS`;
     saveBtn.disabled = balls < cost;
     trashBtn.onclick = () => {
       if (corruptOverlay) corruptOverlay.classList.remove("show");
@@ -1812,43 +1776,40 @@ questions = window.QUESTIONS;
     ctx.globalAlpha = 1;
     ctx.restore();
 
-    // Pozisyonlar: ekranda ortalanmış ve yukarıda
-    const playerPosX = W * 0.28, playerPosY = H * 0.55;
-    const enemyPosX = W * 0.72, enemyPosY = H * 0.55;
+    // Sabit pozisyonlar
+    const birdBattleX = W * 0.18, birdBattleY = H * 0.32;
+    const enemyBattleX = W * 0.72, enemyBattleY = H * 0.55;
 
-    // Oyuncu karakteri (bird veya monster)
+    // Bird'i sabit pozisyonda çiz (oyundaki bird.x, bird.y kullanılmaz!)
     ctx.save();
-    ctx.translate(playerPosX, playerPosY);
-    if (activeUnit.isMonster && activeUnit.monster) {
-      drawMonster({ ...activeUnit.monster, x: 0, y: 0 }, 2.0);
-    } else {
-      drawBird(2.0);
-    }
+    ctx.translate(birdBattleX, birdBattleY);
+    drawBird(2.0);
     ctx.restore();
 
-    // Canavar karakteri
+    // Monster'ı sabit pozisyonda çiz
     ctx.save();
-    ctx.translate(enemyPosX, enemyPosY);
+    ctx.translate(enemyBattleX, enemyBattleY);
     drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.0);
     ctx.restore();
 
     // Gölge efekti (isteğe bağlı)
     ctx.save();
     const gradShadow = ctx.createRadialGradient(
-      enemyPosX,
-      enemyPosY + 80,
+      enemyBattleX,
+      enemyBattleY + 80,
       5,
-      enemyPosX,
-      enemyPosY + 80,
+      enemyBattleX,
+      enemyBattleY + 80,
       60
     );
     gradShadow.addColorStop(0, "rgba(0,0,0,0.35)");
     gradShadow.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = gradShadow;
     ctx.beginPath();
-    ctx.ellipse(enemyPosX, enemyPosY + 80, 60, 18, 0, 0, Math.PI * 2);
+    ctx.ellipse(enemyBattleX, enemyBattleY + 80, 60, 18, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
 
     const t = performance.now();
     const monLunge =
@@ -2005,7 +1966,6 @@ questions = window.QUESTIONS;
     if (!battle) return;
     anim.playerLungeT = performance.now() + 220;
 
-    // Sorunun doğru cevabını bul
     const currentQuestion = questionText.textContent;
     const qObj = questions.find(q => q.question === currentQuestion);
     const userAnswer = battleAnswer.value.trim();
@@ -2014,7 +1974,7 @@ questions = window.QUESTIONS;
       return String(s).toLowerCase().replace(/\s+/g, "");
     }
 
-    if (qObj && qObj.type && qObj.type.includes("personel")) {
+    if (qObj && qObj.type === "personel") {
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
@@ -2036,11 +1996,10 @@ questions = window.QUESTIONS;
       answeredPersonalQuestions.push(userAnswerPersonalQuestion);
       localStorage.setItem("angryflappy_personal_answered", JSON.stringify(answeredPersonalQuestions));
       setTimeout(() => battleAnswer.focus(), 30);
-
       return;
     }
 
-    if (!qObj || normalize(userAnswer) !== normalize(qObj.answer)) {
+    if (!qObj.type === "personel" && qObj.type === "genarel" && normalize(userAnswer) !== normalize(qObj.answer)) {
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
@@ -2050,6 +2009,7 @@ questions = window.QUESTIONS;
       }, 900);
       return;
     }
+
 
     if (qObj && normalize(userAnswer) === normalize(qObj.answer)) {
       if (!answeredQuestionIds.includes(qObj.id)) {
