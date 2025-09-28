@@ -704,9 +704,10 @@ questions = window.QUESTIONS;
   let lastBattledMonster = null;
 
   function startBattleIfCollision(mon) {
+    const collisionRadius = (S.birdR + mon.r) * 1.2; 
     const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
-    if (dist < S.birdR + mon.r && Date.now() > bird.invulnUntil) {
-      lastBattledMonster = mon; // <-- ekle
+    if (dist < collisionRadius && Date.now() > bird.invulnUntil) {
+      lastBattledMonster = mon;
       startBattle({ ...mon });
       return true;
     }
@@ -824,7 +825,7 @@ questions = window.QUESTIONS;
     battleAnswer.value = "";
     captureHint.textContent = "";
     setTimeout(() => battleAnswer.focus(), 40);
-    captureBtn.disabled = !(battle.hp <= activeUnit.power && balls > 0);
+    captureBtn.disabled = !(battle.hp <= 0 && balls > 0);
   }
   function showFleeAndEnd(consumedLife) {
     anim.monsterLungeT = performance.now() + 220;
@@ -1460,6 +1461,22 @@ questions = window.QUESTIONS;
     while (bird.trail.length > 20) bird.trail.shift();
   }
 
+  function drawBirdTrail(ctx, bird) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const trailLength = bird.trail.length;
+    for (let i = 0; i < trailLength; i++) {
+      const a = Math.max(0, 0.35 - i * 0.02);
+      if (a <= 0) continue;
+      const pos = bird.trail[i];
+      if (!pos) continue;
+      ctx.fillStyle = `rgba(0,194,255,${a})`;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
   function consumeLife() {
     lives = roundToHalf(lives - 1);
     if (lives <= 0) {
@@ -1650,46 +1667,17 @@ questions = window.QUESTIONS;
   function drawWorldNormal() {
     worldHelpers.synthParallaxBG();
 
-    for (let p of pipes) {
-      drawPipe(p);
-    }
+    for (let p of pipes) drawPipe(p);
     drawNeonEdges();
-    for (let it of items) {
-      drawItem(it);
-    }
+    for (let it of items) drawItem(it);
     for (let m of monsters) {
       drawMonster(m);
       if (state === "playing") drawStars(m);
     }
 
     if (!activeUnit.isMonster) {
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-
-      const trailLength = 12; // Daha kısa bir kuyruk için mesela 12
-
-      for (let i = 0; i < trailLength; i++) {
-        // Şeffaflık kuşun arkasına gittikçe azalsın
-        const a = Math.max(0, 0.35 - i * 0.025);
-        if (a <= 0) continue;
-
-        // X ekseni: kuşun arkasında sabit
-        const baseX = bird.x - 18 - i * 8;
-
-        // Y ekseni: kuşun Y’sine göre dalgalansın
-        const waveY = Math.sin(performance.now() / 250 + i * 0.7) * 8; // 8 px yukarı aşağı dalga
-
-        ctx.fillStyle = `rgba(0,194,255,${a})`;
-
-        // 8–9 px çap için radius 4 veya 4.5
-        ctx.beginPath();
-        ctx.arc(baseX, bird.y + waveY, 4.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
-
-      // Hem img hem eski efektli kuş çizimi
+      // Bird ile oynanıyorsa sadece bird ve trail çiz
+      drawBirdTrail(ctx, bird);
       const birdImg = drawWorldNormal._birdImg || new Image();
       if (!drawWorldNormal._birdImgLoaded) {
         birdImg.src = "assets/bird.png";
@@ -1702,9 +1690,9 @@ questions = window.QUESTIONS;
         ctx.drawImage(birdImg, -S.birdR, -S.birdR, S.birdR * 2, S.birdR * 2);
         ctx.restore();
       }
-    } else {
-      // Sadece monster'ın resmi çizilsin
-      bird.trail = []; // Monster ile oynarken trail sıfırlansın
+    } else if (activeUnit.monster) {
+      // Monster ile oynanıyorsa SADECE monster çiz
+      bird.trail = [];
       bird.r = activeUnit.monster.r || S.birdR;
       const me = activeUnit.monster;
       const pm = { ...me, x: bird.x, y: bird.y, r: me.r };
@@ -1744,210 +1732,210 @@ questions = window.QUESTIONS;
   }
 
   function getBattlePositions() {
-  return {
-    enemyBaseX: W * 0.72,
-    enemyBaseY: H * 0.55,
-    playerScreenX: W * 0.28,
-    playerScreenY: H * 0.55
-  };
-}
+    return {
+      enemyBaseX: W * 0.72,
+      enemyBaseY: H * 0.55,
+      playerScreenX: W * 0.28,
+      playerScreenY: H * 0.55
+    };
+  }
 
 
   function drawBattleOverlays() {
-  if (!battle) return;
+    if (!battle) return;
 
-  ctx.save();
-  ctx.fillStyle = "#181c2a";
-  ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.fillStyle = "#181c2a";
+    ctx.fillRect(0, 0, W, H);
 
-  const gradBG = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W / 2);
-  gradBG.addColorStop(0, "#2b314a");
-  gradBG.addColorStop(1, "#181c2a");
-  ctx.fillStyle = gradBG;
-  ctx.globalAlpha = 0.7;
-  ctx.fillRect(0, 0, W, H);
-  ctx.globalAlpha = 1;
-  ctx.restore();
+    const gradBG = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W / 2);
+    gradBG.addColorStop(0, "#2b314a");
+    gradBG.addColorStop(1, "#181c2a");
+    ctx.fillStyle = gradBG;
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    ctx.restore();
 
-  // Fixed positioning - player directly faces enemy
-  const enemyBattleX = W * 0.72, enemyBattleY = H * 0.55;
-  const playerBattleX = W * 0.28, playerBattleY = enemyBattleY; // Same Y as enemy, facing position
+    // Fixed positioning - player directly faces enemy
+    const enemyBattleX = W * 0.72, enemyBattleY = H * 0.55;
+    const playerBattleX = W * 0.28, playerBattleY = enemyBattleY; // Same Y as enemy, facing position
 
-  const t = performance.now();
-  const monLunge = t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
-  const plyLunge = t < anim.playerLungeT ? 1 - (anim.playerLungeT - t) / 220 : 0;
-  const hurtA = t < anim.hurtFlashT ? (anim.hurtFlashT - t) / 160 : 0;
+    const t = performance.now();
+    const monLunge = t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
+    const plyLunge = t < anim.playerLungeT ? 1 - (anim.playerLungeT - t) / 220 : 0;
+    const hurtA = t < anim.hurtFlashT ? (anim.hurtFlashT - t) / 160 : 0;
 
-  // Calculate actual positions with lunge animations
-  const finalPlayerX = playerBattleX + 40 * plyLunge;
-  const finalPlayerY = playerBattleY; // Keep same Y level as enemy
-  const finalEnemyX = enemyBattleX - 40 * monLunge;
-  const finalEnemyY = enemyBattleY;
+    // Calculate actual positions with lunge animations
+    const finalPlayerX = playerBattleX + 40 * plyLunge;
+    const finalPlayerY = playerBattleY; // Keep same Y level as enemy
+    const finalEnemyX = enemyBattleX - 40 * monLunge;
+    const finalEnemyY = enemyBattleY;
 
-  // Draw player character at correct position with correct image
-  ctx.save();
-  if (activeUnit.isMonster) {
-    // Draw the selected monster at battle position
-    ctx.translate(finalPlayerX, finalPlayerY);
-    const playerMonster = {
-      ...activeUnit.monster,
-      x: 0, 
-      y: 0
-    };
-    drawMonster(playerMonster, 2.0);
-  } else {
-    // For bird, draw directly at battle position without using global bird coordinates
-    const size = S.birdR * 2 * 2.0; // scale = 2.0
-    const birdImg = drawBird._birdImg || new window.Image();
-    if (!drawBird._birdImgLoaded) {
-      birdImg.src = "assets/bird.png";
-      birdImg.onload = () => { drawBird._birdImgLoaded = true; };
-      drawBird._birdImg = birdImg;
-    }
-    if (birdImg.complete && birdImg.naturalWidth > 0) {
-      ctx.drawImage(birdImg, finalPlayerX - size/2, finalPlayerY - size/2, size, size);
-    }
-  }
-  ctx.restore();
-
-  // Draw enemy monster at correct position
-  ctx.save();
-  ctx.translate(finalEnemyX, finalEnemyY);
-  drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.0);
-  ctx.restore();
-
-  ctx.save();
-  const gradShadowPlayer = ctx.createRadialGradient(
-    finalPlayerX,
-    finalPlayerY + 80,
-    5,
-    finalPlayerX,
-    finalPlayerY + 80,
-    60
-  );
-  gradShadowPlayer.addColorStop(0, "rgba(0,0,0,0.35)");
-  gradShadowPlayer.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradShadowPlayer;
-  ctx.beginPath();
-  ctx.ellipse(finalPlayerX, finalPlayerY + 80, 60, 18, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  const gradShadowEnemy = ctx.createRadialGradient(
-    finalEnemyX,
-    finalEnemyY + 80,
-    5,
-    finalEnemyX,
-    finalEnemyY + 80,
-    60
-  );
-  gradShadowEnemy.addColorStop(0, "rgba(0,0,0,0.35)");
-  gradShadowEnemy.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradShadowEnemy;
-  ctx.beginPath();
-  ctx.ellipse(finalEnemyX, finalEnemyY + 80, 60, 18, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // Capture animation
-  if (anim.capture.active) {
-    const now = performance.now();
-    if (anim.capture.phase === "fly") {
-      const p = Math.min(
-        1,
-        (now - anim.capture.t0) / (anim.capture.t1 - anim.capture.t0)
-      );
-      const x = anim.capture.fromX + (anim.capture.toX - anim.capture.fromX) * p;
-      const y = anim.capture.fromY + (anim.capture.toY - anim.capture.fromY) * p;
-      const r = 10 + 20 * p;
-      drawNeonBall(x, y, r);
-      if (p >= 1) {
-        anim.capture.phase = "hold";
-        anim.capture.holdUntil = now + 1000;
+    // Draw player character at correct position with correct image
+    ctx.save();
+    if (activeUnit.isMonster) {
+      // Draw the selected monster at battle position
+      ctx.translate(finalPlayerX, finalPlayerY);
+      const playerMonster = {
+        ...activeUnit.monster,
+        x: 0,
+        y: 0
+      };
+      drawMonster(playerMonster, 2.0);
+    } else {
+      // For bird, draw directly at battle position without using global bird coordinates
+      const size = S.birdR * 2 * 2.0; // scale = 2.0
+      const birdImg = drawBird._birdImg || new window.Image();
+      if (!drawBird._birdImgLoaded) {
+        birdImg.src = "assets/bird.png";
+        birdImg.onload = () => { drawBird._birdImgLoaded = true; };
+        drawBird._birdImg = birdImg;
       }
-    } else if (anim.capture.phase === "hold") {
-      // Draw ball enclosing the monster
-      drawNeonBall(finalEnemyX, finalEnemyY, 52);
-      ctx.save();
-      ctx.globalAlpha = 0.55;
-      ctx.translate(finalEnemyX, finalEnemyY);
-      drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.2);
-      ctx.restore();
-      if (now >= anim.capture.holdUntil) {
-        anim.capture.phase = "result";
-        anim.capture.t0 = now;
+      if (birdImg.complete && birdImg.naturalWidth > 0) {
+        ctx.drawImage(birdImg, finalPlayerX - size / 2, finalPlayerY - size / 2, size, size);
       }
-    } else if (anim.capture.phase === "result") {
-      const text = anim.capture.success ? "CATCH" : "RATÊ";
+    }
+    ctx.restore();
+
+    // Draw enemy monster at correct position
+    ctx.save();
+    ctx.translate(finalEnemyX, finalEnemyY);
+    drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.0);
+    ctx.restore();
+
+    ctx.save();
+    const gradShadowPlayer = ctx.createRadialGradient(
+      finalPlayerX,
+      finalPlayerY + 80,
+      5,
+      finalPlayerX,
+      finalPlayerY + 80,
+      60
+    );
+    gradShadowPlayer.addColorStop(0, "rgba(0,0,0,0.35)");
+    gradShadowPlayer.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gradShadowPlayer;
+    ctx.beginPath();
+    ctx.ellipse(finalPlayerX, finalPlayerY + 80, 60, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const gradShadowEnemy = ctx.createRadialGradient(
+      finalEnemyX,
+      finalEnemyY + 80,
+      5,
+      finalEnemyX,
+      finalEnemyY + 80,
+      60
+    );
+    gradShadowEnemy.addColorStop(0, "rgba(0,0,0,0.35)");
+    gradShadowEnemy.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gradShadowEnemy;
+    ctx.beginPath();
+    ctx.ellipse(finalEnemyX, finalEnemyY + 80, 60, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Capture animation
+    if (anim.capture.active) {
+      const now = performance.now();
+      if (anim.capture.phase === "fly") {
+        const p = Math.min(
+          1,
+          (now - anim.capture.t0) / (anim.capture.t1 - anim.capture.t0)
+        );
+        const x = anim.capture.fromX + (anim.capture.toX - anim.capture.fromX) * p;
+        const y = anim.capture.fromY + (anim.capture.toY - anim.capture.fromY) * p;
+        const r = 10 + 20 * p;
+        drawNeonBall(x, y, r);
+        if (p >= 1) {
+          anim.capture.phase = "hold";
+          anim.capture.holdUntil = now + 1000;
+        }
+      } else if (anim.capture.phase === "hold") {
+        // Draw ball enclosing the monster
+        drawNeonBall(finalEnemyX, finalEnemyY, 52);
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.translate(finalEnemyX, finalEnemyY);
+        drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.2);
+        ctx.restore();
+        if (now >= anim.capture.holdUntil) {
+          anim.capture.phase = "result";
+          anim.capture.t0 = now;
+        }
+      } else if (anim.capture.phase === "result") {
+        const text = anim.capture.success ? "CATCH" : "RATÊ";
+        ctx.save();
+        ctx.font = "48px monospace";
+        ctx.fillStyle = "#ffffff";
+        const m = ctx.measureText(text);
+        const x = (W - m.width) / 2,
+          y = H * 0.24;
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = "#111827";
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
+        ctx.restore();
+        if (now - anim.capture.t0 > 650) {
+          if (anim.capture.success) {
+            // Success: add to collection, bump counters, then end
+            const id = battle.mon.id;
+            if (!collection.includes(id)) {
+              collection.push(id);
+              saveCollection(collection);
+              try {
+                renderCollectionPaged(dexStart);
+                renderCollectionPaged(dexEl);
+              } catch (e) { }
+            }
+            capturesRun++;
+            if (capturesRun > bestCaptInRun) {
+              bestCaptInRun = capturesRun;
+              localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
+            }
+            anim.capture.active = false;
+            showFleeAndEnd(false);
+          } else {
+            anim.capture.active = false;
+            if (Math.random() < 0.5) enemyAttack();
+          }
+        }
+      }
+    }
+
+    // Hurt flash effect
+    if (hurtA > 0) {
+      ctx.fillStyle = `rgba(255,0,0,${Math.min(0.35, hurtA)})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Flee banner
+    if (battle && battle.fleeBannerUntil && performance.now() < battle.fleeBannerUntil) {
       ctx.save();
       ctx.font = "48px monospace";
       ctx.fillStyle = "#ffffff";
+      const text = "FUITE";
       const m = ctx.measureText(text);
-      const x = (W - m.width) / 2,
-        y = H * 0.24;
+      const x = (W - m.width) / 2, y = H * 0.18;
       ctx.lineWidth = 6;
       ctx.strokeStyle = "#111827";
       ctx.strokeText(text, x, y);
       ctx.fillText(text, x, y);
       ctx.restore();
-      if (now - anim.capture.t0 > 650) {
-        if (anim.capture.success) {
-          // Success: add to collection, bump counters, then end
-          const id = battle.mon.id;
-          if (!collection.includes(id)) {
-            collection.push(id);
-            saveCollection(collection);
-            try {
-              renderCollectionPaged(dexStart);
-              renderCollectionPaged(dexEl);
-            } catch (e) { }
-          }
-          capturesRun++;
-          if (capturesRun > bestCaptInRun) {
-            bestCaptInRun = capturesRun;
-            localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
-          }
-          anim.capture.active = false;
-          showFleeAndEnd(false);
-        } else {
-          anim.capture.active = false;
-          if (Math.random() < 0.5) enemyAttack();
-        }
-      }
+    }
+
+    // Disable input in DOM during capture animation
+    if (anim.capture && anim.capture.active) {
+      answerBtn.disabled = true;
+      fleeBtn.disabled = true;
+      captureBtn.disabled = true;
+    } else {
+      answerBtn.disabled = false;
+      fleeBtn.disabled = false;
+      captureBtn.disabled = false;
     }
   }
-
-  // Hurt flash effect
-  if (hurtA > 0) {
-    ctx.fillStyle = `rgba(255,0,0,${Math.min(0.35, hurtA)})`;
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  // Flee banner
-  if (battle && battle.fleeBannerUntil && performance.now() < battle.fleeBannerUntil) {
-    ctx.save();
-    ctx.font = "48px monospace";
-    ctx.fillStyle = "#ffffff";
-    const text = "FUITE";
-    const m = ctx.measureText(text);
-    const x = (W - m.width) / 2, y = H * 0.18;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = "#111827";
-    ctx.strokeText(text, x, y);
-    ctx.fillText(text, x, y);
-    ctx.restore();
-  }
-
-  // Disable input in DOM during capture animation
-  if (anim.capture && anim.capture.active) {
-    answerBtn.disabled = true;
-    fleeBtn.disabled = true;
-    captureBtn.disabled = true;
-  } else {
-    answerBtn.disabled = false;
-    fleeBtn.disabled = false;
-    captureBtn.disabled = false;
-  }
-}
 
   // ---------- Turn buttons ----------
   answerBtn.addEventListener("click", (e) => {
@@ -1967,12 +1955,12 @@ questions = window.QUESTIONS;
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
-      battle.hp = Math.max(0, roundToHalf(battle.hp - 1));
+      battle.hp = Math.max(0, roundToHalf(battle.hp - 1)); // <-- SABİT 1 HASAR!
       fillBattleMenuDetails(battle.mon, battle.hp, activeUnit.power);
       if (battle.hp <= 0) {
         setTimeout(() => {
-          showFleeAndEnd(false);
-        }, 1200);
+          captureBtn.click();
+        }, 400);
         return;
       }
       captureHint.textContent = "Personal question answered! You attacked the monster.";
@@ -2085,7 +2073,11 @@ questions = window.QUESTIONS;
               String(bestCaptInRun)
             );
           }
-          captureHint.textContent = "Monster captured!";
+          const extraHp = Math.floor(Math.random() * 2) + 1;
+          activeUnit.hpMax += extraHp;
+          lives = activeUnit.hpMax;
+          updateHUD();
+          captureHint.textContent = `Monster captured! +${extraHp} HP`;
         } else {
           captureHint.textContent = "Capture failed!";
         }
