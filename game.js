@@ -1799,6 +1799,57 @@ questions = window.QUESTIONS;
   function drawBattleOverlays() {
     if (!battle) return;
 
+    ctx.save();
+    ctx.fillStyle = "#181c2a";
+    ctx.fillRect(0, 0, W, H);
+
+    const gradBG = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W / 2);
+    gradBG.addColorStop(0, "#2b314a");
+    gradBG.addColorStop(1, "#181c2a");
+    ctx.fillStyle = gradBG;
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // Pozisyonlar: ekranda ortalanmış ve yukarıda
+    const playerPosX = W * 0.28, playerPosY = H * 0.55;
+    const enemyPosX = W * 0.72, enemyPosY = H * 0.55;
+
+    // Oyuncu karakteri (bird veya monster)
+    ctx.save();
+    ctx.translate(playerPosX, playerPosY);
+    if (activeUnit.isMonster && activeUnit.monster) {
+      drawMonster({ ...activeUnit.monster, x: 0, y: 0 }, 2.0);
+    } else {
+      drawBird(2.0);
+    }
+    ctx.restore();
+
+    // Canavar karakteri
+    ctx.save();
+    ctx.translate(enemyPosX, enemyPosY);
+    drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.0);
+    ctx.restore();
+
+    // Gölge efekti (isteğe bağlı)
+    ctx.save();
+    const gradShadow = ctx.createRadialGradient(
+      enemyPosX,
+      enemyPosY + 80,
+      5,
+      enemyPosX,
+      enemyPosY + 80,
+      60
+    );
+    gradShadow.addColorStop(0, "rgba(0,0,0,0.35)");
+    gradShadow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gradShadow;
+    ctx.beginPath();
+    ctx.ellipse(enemyPosX, enemyPosY + 80, 60, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     const t = performance.now();
     const monLunge =
       t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
@@ -2032,7 +2083,7 @@ questions = window.QUESTIONS;
 
   function getCaptureRate(mon, hp, playerPower) {
     let rate = (100 - ((hp * 10) + (playerPower * 5)));
-    rate = Math.max(0, rate); 
+    rate = Math.max(0, rate);
     console.log("Capture rate calculated:", rate);
     return parseInt(rate, 10);
   }
@@ -2314,7 +2365,6 @@ questions = window.QUESTIONS;
     if (state === "playing") update(dt);
     ctx.clearRect(0, 0, W, H);
     if (state === "battle") {
-      drawWorldZoomed();
       drawBattleOverlays();
     } else {
       drawWorldNormal();
