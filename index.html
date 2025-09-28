@@ -60,6 +60,10 @@
             <p class="player-hp top-menu-p"> HP : </p>
             <p class="player-hp top-menu-p" id="playerHp"></p>
           </div>
+          <div class="battle-top-text-container">
+            <p class="player-name top-menu-p"> Balls : </p>
+            <div class="player-name top-menu-p" id="playerBalls"></div>
+          </div>
         </div>
         <div class="battle-top-player-menu">
           <div class="battle-top-text-container">
@@ -73,6 +77,10 @@
           <div class="battle-top-text-container">
             <p class="monster-hp top-menu-p"> HP : </p>
             <p class="monster-hp top-menu-p" id="monsterHp"></p>
+          </div>
+          <div class="battle-top-text-container">
+            <p class="monster-capture top-menu-p"> Capture Rate : </p>
+            <p class="monster-capture top-menu-p" id="captureRate"></p>
           </div>
         </div>
       </div>
@@ -91,7 +99,6 @@
           <span class="hint" id="captureHint"></span>
         </div>
       </div>
-
     </div>
     <div class="overlay show" id="splash"
       style="background:#0f380f;display:flex;align-items:center;justify-content:center;">
@@ -154,6 +161,23 @@
         <div class="row center">
           <button class="btn gb-btn" id="retryBtn">RETRY WITHOUT MONSTER</button>
           <button class="btn gb-btn ghost" id="sendBtnOver">SEND MONSTER</button>
+          <button class="btn gb-btn " id="personalAnswerBtn">See Personal Answers</button>
+        </div>
+      </div>
+    </div>
+    <div class="personal-answers-container" id="personalAnswersContainer">
+      <div class="panel pixel-panel gb-panel">
+        <h2 class="gb-h2">Personal Questions Answers</h2>
+        <div class="answer-title-container">
+          <p class="answer-title"> Questions </p>
+          <p class="answer-title"> Answers </p>
+        </div>
+        <div class="answers-list-container" id="answersList">
+           <div class="questions-container" id="questionsContainer"></div>
+           <div class="answers-container" id="answersContainer"></div>
+        </div>
+        <div class="row center" style="margin-top:10px">
+          <button class="btn gb-btn " id="closePersonalBtn">CLOSE</button>
         </div>
       </div>
     </div>
