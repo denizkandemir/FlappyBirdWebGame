@@ -1744,221 +1744,210 @@ questions = window.QUESTIONS;
   }
 
   function getBattlePositions() {
-    // Ekrandaki monster'ın pozisyonunu kullan
-    if (lastBattledMonster) {
-      return {
-        enemyBaseX: lastBattledMonster.x,
-        enemyBaseY: lastBattledMonster.y,
-        playerScreenX: bird.x,
-        playerScreenY: bird.y
-      };
-    }
-    const enemyBaseX = W * 0.72,
-      enemyBaseY = H * 0.55;
-    const playerScreenX = W * 0.18,
-      playerScreenY = H * 0.7;
-    return { enemyBaseX, enemyBaseY, playerScreenX, playerScreenY };
-  }
+  return {
+    enemyBaseX: W * 0.72,
+    enemyBaseY: H * 0.55,
+    playerScreenX: W * 0.28,
+    playerScreenY: H * 0.55
+  };
+}
+
 
   function drawBattleOverlays() {
-    if (!battle) return;
+  if (!battle) return;
 
-    ctx.save();
-    ctx.fillStyle = "#181c2a";
-    ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.fillStyle = "#181c2a";
+  ctx.fillRect(0, 0, W, H);
 
-    const gradBG = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W / 2);
-    gradBG.addColorStop(0, "#2b314a");
-    gradBG.addColorStop(1, "#181c2a");
-    ctx.fillStyle = gradBG;
-    ctx.globalAlpha = 0.7;
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalAlpha = 1;
-    ctx.restore();
+  const gradBG = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W / 2);
+  gradBG.addColorStop(0, "#2b314a");
+  gradBG.addColorStop(1, "#181c2a");
+  ctx.fillStyle = gradBG;
+  ctx.globalAlpha = 0.7;
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalAlpha = 1;
+  ctx.restore();
 
-    // Sabit pozisyonlar
-    const birdBattleX = W * 0.18, birdBattleY = H * 0.32;
-    const enemyBattleX = W * 0.72, enemyBattleY = H * 0.55;
+  // Fixed positioning - player directly faces enemy
+  const enemyBattleX = W * 0.72, enemyBattleY = H * 0.55;
+  const playerBattleX = W * 0.28, playerBattleY = enemyBattleY; // Same Y as enemy, facing position
 
-    // Bird'i sabit pozisyonda çiz (oyundaki bird.x, bird.y kullanılmaz!)
-    ctx.save();
-    ctx.translate(birdBattleX, birdBattleY);
-    drawBird(2.0);
-    ctx.restore();
+  const t = performance.now();
+  const monLunge = t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
+  const plyLunge = t < anim.playerLungeT ? 1 - (anim.playerLungeT - t) / 220 : 0;
+  const hurtA = t < anim.hurtFlashT ? (anim.hurtFlashT - t) / 160 : 0;
 
-    // Monster'ı sabit pozisyonda çiz
-    ctx.save();
-    ctx.translate(enemyBattleX, enemyBattleY);
-    drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.0);
-    ctx.restore();
+  // Calculate actual positions with lunge animations
+  const finalPlayerX = playerBattleX + 40 * plyLunge;
+  const finalPlayerY = playerBattleY; // Keep same Y level as enemy
+  const finalEnemyX = enemyBattleX - 40 * monLunge;
+  const finalEnemyY = enemyBattleY;
 
-    // Gölge efekti (isteğe bağlı)
-    ctx.save();
-    const gradShadow = ctx.createRadialGradient(
-      enemyBattleX,
-      enemyBattleY + 80,
-      5,
-      enemyBattleX,
-      enemyBattleY + 80,
-      60
-    );
-    gradShadow.addColorStop(0, "rgba(0,0,0,0.35)");
-    gradShadow.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = gradShadow;
-    ctx.beginPath();
-    ctx.ellipse(enemyBattleX, enemyBattleY + 80, 60, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+  // Draw player character at correct position with correct image
+  ctx.save();
+  if (activeUnit.isMonster) {
+    // Draw the selected monster at battle position
+    ctx.translate(finalPlayerX, finalPlayerY);
+    const playerMonster = {
+      ...activeUnit.monster,
+      x: 0, 
+      y: 0
+    };
+    drawMonster(playerMonster, 2.0);
+  } else {
+    // For bird, draw directly at battle position without using global bird coordinates
+    const size = S.birdR * 2 * 2.0; // scale = 2.0
+    const birdImg = drawBird._birdImg || new window.Image();
+    if (!drawBird._birdImgLoaded) {
+      birdImg.src = "assets/bird.png";
+      birdImg.onload = () => { drawBird._birdImgLoaded = true; };
+      drawBird._birdImg = birdImg;
+    }
+    if (birdImg.complete && birdImg.naturalWidth > 0) {
+      ctx.drawImage(birdImg, finalPlayerX - size/2, finalPlayerY - size/2, size, size);
+    }
+  }
+  ctx.restore();
 
+  // Draw enemy monster at correct position
+  ctx.save();
+  ctx.translate(finalEnemyX, finalEnemyY);
+  drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.0);
+  ctx.restore();
 
-    const t = performance.now();
-    const monLunge =
-      t < anim.monsterLungeT ? 1 - (anim.monsterLungeT - t) / 220 : 0;
-    const plyLunge =
-      t < anim.playerLungeT ? 1 - (anim.playerLungeT - t) / 220 : 0;
-    const hurtA = t < anim.hurtFlashT ? (anim.hurtFlashT - t) / 160 : 0;
-    const enemyBaseX = W * 0.72,
-      enemyBaseY = H * 0.55;
-    const enemyX = enemyBaseX - 40 * monLunge;
-    const enemyY = enemyBaseY;
-    // Capture animation
-    if (anim.capture.active) {
-      const now = performance.now();
-      if (anim.capture.phase === "fly") {
-        const p = Math.min(
-          1,
-          (now - anim.capture.t0) / (anim.capture.t1 - anim.capture.t0)
-        );
-        const x =
-          anim.capture.fromX + (anim.capture.toX - anim.capture.fromX) * p;
-        const y =
-          anim.capture.fromY + (anim.capture.toY - anim.capture.fromY) * p;
-        const r = 10 + 20 * p;
-        drawNeonBall(x, y, r);
-        if (p >= 1) {
-          anim.capture.phase = "hold";
-          anim.capture.holdUntil = now + 1000;
-        }
-      } else if (anim.capture.phase === "hold") {
-        // Draw ball enclosing the monster
-        drawNeonBall(enemyX, enemyY, 52);
-        ctx.save();
-        ctx.globalAlpha = 0.55;
-        ctx.translate(enemyX, enemyY);
-        // drawMonsterBody(battle.mon, ctx, 2.2);
-        ctx.restore();
-        if (now >= anim.capture.holdUntil) {
-          anim.capture.phase = "result";
-          anim.capture.t0 = now;
-        }
-      } else if (anim.capture.phase === "result") {
-        const text = anim.capture.success ? "CATCH" : "RATÉ";
-        ctx.save();
-        ctx.font = "48px monospace";
-        ctx.fillStyle = "#ffffff";
-        const m = ctx.measureText(text);
-        const x = (W - m.width) / 2,
-          y = H * 0.24;
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = "#111827";
-        ctx.strokeText(text, x, y);
-        ctx.fillText(text, x, y);
-        ctx.restore();
-        if (now - anim.capture.t0 > 650) {
-          if (anim.capture.success) {
-            // Success: add to collection, bump counters, then end
-            const id = battle.mon.id;
-            if (!collection.includes(id)) {
-              collection.push(id);
-              saveCollection(collection);
-              try {
-                renderCollectionPaged(dexStart);
-                renderCollectionPaged(dexEl);
-              } catch (e) { }
-            }
-            capturesRun++;
-            if (capturesRun > bestCaptInRun) {
-              bestCaptInRun = capturesRun;
-              localStorage.setItem(
-                "angryflappy_bestcaprun",
-                String(bestCaptInRun)
-              );
-            }
-            anim.capture.active = false;
-            showFleeAndEnd(false);
-          } else {
-            anim.capture.active = false;
-            if (Math.random() < 0.5) enemyAttack();
-          }
-        }
+  ctx.save();
+  const gradShadowPlayer = ctx.createRadialGradient(
+    finalPlayerX,
+    finalPlayerY + 80,
+    5,
+    finalPlayerX,
+    finalPlayerY + 80,
+    60
+  );
+  gradShadowPlayer.addColorStop(0, "rgba(0,0,0,0.35)");
+  gradShadowPlayer.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = gradShadowPlayer;
+  ctx.beginPath();
+  ctx.ellipse(finalPlayerX, finalPlayerY + 80, 60, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const gradShadowEnemy = ctx.createRadialGradient(
+    finalEnemyX,
+    finalEnemyY + 80,
+    5,
+    finalEnemyX,
+    finalEnemyY + 80,
+    60
+  );
+  gradShadowEnemy.addColorStop(0, "rgba(0,0,0,0.35)");
+  gradShadowEnemy.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = gradShadowEnemy;
+  ctx.beginPath();
+  ctx.ellipse(finalEnemyX, finalEnemyY + 80, 60, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Capture animation
+  if (anim.capture.active) {
+    const now = performance.now();
+    if (anim.capture.phase === "fly") {
+      const p = Math.min(
+        1,
+        (now - anim.capture.t0) / (anim.capture.t1 - anim.capture.t0)
+      );
+      const x = anim.capture.fromX + (anim.capture.toX - anim.capture.fromX) * p;
+      const y = anim.capture.fromY + (anim.capture.toY - anim.capture.fromY) * p;
+      const r = 10 + 20 * p;
+      drawNeonBall(x, y, r);
+      if (p >= 1) {
+        anim.capture.phase = "hold";
+        anim.capture.holdUntil = now + 1000;
       }
-    }
-    ctx.save();
-    const grad = ctx.createRadialGradient(
-      enemyX,
-      enemyY + 80,
-      5,
-      enemyX,
-      enemyY + 80,
-      60
-    );
-    grad.addColorStop(0, "rgba(0,0,0,0.35)");
-    grad.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.ellipse(enemyX, enemyY + 80, 60, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.save();
-    ctx.translate(enemyX, enemyY);
-    // drawMonsterBody(battle.mon, ctx, 2.2);
-    ctx.restore();
-
-    const playerScreenX = W * 0.18 + 40 * plyLunge;
-    const playerScreenY = H * 0.7;
-    ctx.save();
-    ctx.translate(playerScreenX, playerScreenY);
-    if (activeUnit.isMonster) {
-      // drawMonsterBody(activeUnit.monster, ctx, 2.0);
-    } else {
-      drawBird(1.6);
-    }
-    ctx.restore();
-
-    if (hurtA > 0) {
-      ctx.fillStyle = `rgba(255,0,0,${Math.min(0.35, hurtA)})`;
-      ctx.fillRect(0, 0, W, H);
-    }
-    if (
-      battle &&
-      battle.fleeBannerUntil &&
-      performance.now() < battle.fleeBannerUntil
-    ) {
+    } else if (anim.capture.phase === "hold") {
+      // Draw ball enclosing the monster
+      drawNeonBall(finalEnemyX, finalEnemyY, 52);
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      ctx.translate(finalEnemyX, finalEnemyY);
+      drawMonster({ ...battle.mon, x: 0, y: 0 }, 2.2);
+      ctx.restore();
+      if (now >= anim.capture.holdUntil) {
+        anim.capture.phase = "result";
+        anim.capture.t0 = now;
+      }
+    } else if (anim.capture.phase === "result") {
+      const text = anim.capture.success ? "CATCH" : "RATÊ";
       ctx.save();
       ctx.font = "48px monospace";
       ctx.fillStyle = "#ffffff";
-      const text = "FUITE";
       const m = ctx.measureText(text);
       const x = (W - m.width) / 2,
-        y = H * 0.18;
+        y = H * 0.24;
       ctx.lineWidth = 6;
       ctx.strokeStyle = "#111827";
       ctx.strokeText(text, x, y);
       ctx.fillText(text, x, y);
       ctx.restore();
-    }
-
-    // Disable input in DOM during capture animation
-    if (anim.capture && anim.capture.active) {
-      answerBtn.disabled = true;
-      fleeBtn.disabled = true;
-      captureBtn.disabled = true;
-    } else {
-      answerBtn.disabled = false;
-      fleeBtn.disabled = false;
-      captureBtn.disabled = false;
+      if (now - anim.capture.t0 > 650) {
+        if (anim.capture.success) {
+          // Success: add to collection, bump counters, then end
+          const id = battle.mon.id;
+          if (!collection.includes(id)) {
+            collection.push(id);
+            saveCollection(collection);
+            try {
+              renderCollectionPaged(dexStart);
+              renderCollectionPaged(dexEl);
+            } catch (e) { }
+          }
+          capturesRun++;
+          if (capturesRun > bestCaptInRun) {
+            bestCaptInRun = capturesRun;
+            localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
+          }
+          anim.capture.active = false;
+          showFleeAndEnd(false);
+        } else {
+          anim.capture.active = false;
+          if (Math.random() < 0.5) enemyAttack();
+        }
+      }
     }
   }
+
+  // Hurt flash effect
+  if (hurtA > 0) {
+    ctx.fillStyle = `rgba(255,0,0,${Math.min(0.35, hurtA)})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Flee banner
+  if (battle && battle.fleeBannerUntil && performance.now() < battle.fleeBannerUntil) {
+    ctx.save();
+    ctx.font = "48px monospace";
+    ctx.fillStyle = "#ffffff";
+    const text = "FUITE";
+    const m = ctx.measureText(text);
+    const x = (W - m.width) / 2, y = H * 0.18;
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "#111827";
+    ctx.strokeText(text, x, y);
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  // Disable input in DOM during capture animation
+  if (anim.capture && anim.capture.active) {
+    answerBtn.disabled = true;
+    fleeBtn.disabled = true;
+    captureBtn.disabled = true;
+  } else {
+    answerBtn.disabled = false;
+    fleeBtn.disabled = false;
+    captureBtn.disabled = false;
+  }
+}
 
   // ---------- Turn buttons ----------
   answerBtn.addEventListener("click", (e) => {
