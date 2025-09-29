@@ -773,7 +773,7 @@ questions = window.QUESTIONS;
 
   function fillBattleMenuDetails(mon, battleHp, power) {
     const playerName = document.getElementById("playerName");
-    playerName.textContent = activeUnit.name || "Dresseur";
+    //playerName.textContent = activeUnit.name || "Dresseur";
 
     const playerHp = document.getElementById("playerHp");
     const playerPowerEl = document.getElementById("playerPower");
@@ -789,6 +789,8 @@ questions = window.QUESTIONS;
     const monsterHpVal = (battle && battle.hp != null ? battle.hp : mon.maxhp);
     monHp.textContent = "❤️".repeat(Math.round(monsterHpVal));
     monPowerEl.textContent = "⚡".repeat(mon.power || 1);
+
+    captureBtn.textContent ="Capture ( " + `${captureRate} % ` + ")"
 
     playerHp.textContent = "❤️".repeat(Math.round(lives));
     playerPowerEl.textContent = "⚡".repeat(activeUnit.power);
@@ -1951,7 +1953,7 @@ questions = window.QUESTIONS;
       return String(s).toLowerCase().replace(/\s+/g, "");
     }
 
-    if (qObj && qObj.type === "personel") {
+    if (qObj && qObj.type === "personal") {
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
@@ -1976,7 +1978,7 @@ questions = window.QUESTIONS;
       return;
     }
 
-    if (!qObj.type === "personel" && qObj.type === "genarel" && normalize(userAnswer) !== normalize(qObj.answer)) {
+    if (qObj.type !== "personal" && qObj.type === "genarel" && normalize(userAnswer) !== normalize(qObj.answer)) {
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
