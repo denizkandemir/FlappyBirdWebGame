@@ -31,16 +31,6 @@ let questions = [
   { id: 30, question: "What is the main language spoken in Brazil?", answer: "Portuguese", type: "general" },
 
 
-  { id: 31, question: "What is your favorite color?", answer: "", type: "personal" },
-  { id: 32, question: "What is your favorite food?", answer: "", type: "personal" },
-  { id: 33, question: "Which city were you born in?", answer: "", type: "personal " },
-  { id: 34, question: "Do you have any hobbies? If yes, what are they?", answer: "", type: "personel" },
-  { id: 35, question: "What is your favorite movie or TV show?", answer: "", type: "personel" },
-  { id: 36, question: "Do you prefer cats or dogs?", answer: "", type: "personel" },
-  { id: 37, question: "What is your dream job?", answer: "", type: "personel" },
-  { id: 38, question: "What kind of music do you like?", answer: "", type: "personel" },
-  { id: 39, question: "If you could visit any country, which one would it be?", answer: "", type: "personel" },
-  { id: 40, question: "What is your favorite sport or activity?", answer: "", type: "personel" }
 
 
 ];

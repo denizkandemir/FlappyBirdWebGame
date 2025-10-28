@@ -13,8 +13,6 @@ questions = window.QUESTIONS;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
   let answeredQuestionIds = [];
-  let answeredPersonalQuestions = [];
-
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -288,9 +286,7 @@ questions = window.QUESTIONS;
     const name = takeFirst3(form) + takeFirst3(cat) + takeLast3(col);
     return capFirst(name);
   }
-  function monsterId(catIdx, formIdx, colorIdx) {
-    return `${catIdx}-${formIdx}-${colorIdx}`;
-  }
+
   function hashStr(s) {
     let h = 0;
     for (let i = 0; i < s.length; i++) {
@@ -401,35 +397,6 @@ questions = window.QUESTIONS;
     return html;
   }
 
-  function drawGBHeartFrac(x, y, frac) {
-    const px = [
-      "00100100",
-      "01111110",
-      "11111111",
-      "11111111",
-      "01111110",
-      "00111100",
-      "00011000",
-    ];
-    ctx.fillStyle = "#cfe69b";
-    for (let r = 0; r < px.length; r++) {
-      for (let c = 0; c < 8; c++) {
-        if (px[r][c] === "1") {
-          ctx.fillRect(x + c * 2, y + r * 2, 2, 2);
-        }
-      }
-    }
-    const cols = Math.round(8 * frac);
-    ctx.fillStyle = "#0f380f";
-    for (let r = 0; r < px.length; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (px[r][c] === "1") {
-          ctx.fillRect(x + c * 2, y + r * 2, 2, 2);
-        }
-      }
-    }
-  }
-
   function mulberry32(a) {
     return function () {
       var t = (a += 0x6d2b79f5);
@@ -538,8 +505,6 @@ questions = window.QUESTIONS;
     }
     ctx.restore();
   }
-
-  // ...diğer kodların üstüne, neon renk dizisinin yanına ekle:
 
   function drawNeonEdges() {
     ctx.fillStyle = "#000";
@@ -674,27 +639,8 @@ questions = window.QUESTIONS;
     };
   }
 
-  // function formIndex(catName, formName) {
-  //   return Forms[catName].indexOf(formName);
-  // }
-
-  function colorIndex(colorName) {
-    return Colors.findIndex((c) => c.name === colorName);
-  }
-
   function categoryIndex(categoryName) {
     return Categories.indexOf(categoryName);
-  }
-
-  function acceptanceFor(mon) {
-    const s = starsFor(mon);
-    let starFactor = 1.0;
-    if (s === 1) starFactor = 0.6;
-    else if (s === 2) starFactor = 0.3;
-    else if (s === 3) starFactor = 0.08;
-    else if (s === 4) starFactor = 0.02;
-    const statFactor = ((11 - mon.maxhp) / 10) * ((11 - mon.power) / 10);
-    return Math.min(1, starFactor * statFactor);
   }
 
   function createMonster() {
@@ -704,7 +650,7 @@ questions = window.QUESTIONS;
   let lastBattledMonster = null;
 
   function startBattleIfCollision(mon) {
-    const collisionRadius = (S.birdR + mon.r) * 1.2; 
+    const collisionRadius = (S.birdR + mon.r) * 1.2;
     const dist = Math.hypot(bird.x - mon.x, bird.y - mon.y);
     if (dist < collisionRadius && Date.now() > bird.invulnUntil) {
       lastBattledMonster = mon;
@@ -715,7 +661,6 @@ questions = window.QUESTIONS;
   }
   const FLOOR_H = 40;
 
-  // --- Geometry Dash tarzı bird ---
   function drawBird(scale = 1) {
     const size = S.birdR * 2 * scale;
     const birdImg = drawBird._birdImg || new window.Image();
@@ -759,22 +704,8 @@ questions = window.QUESTIONS;
     ctx.restore();
   }
 
-
-  function shade(hex, k) {
-    const c = parseInt(hex.slice(1), 16);
-    let r = (c >> 16) & 255,
-      g = (c >> 8) & 255,
-      b = c & 255;
-    r = Math.max(0, Math.min(255, Math.round(r * k)));
-    g = Math.max(0, Math.min(255, Math.round(g * k)));
-    b = Math.max(0, Math.min(255, Math.round(b * k)));
-    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-  }
-
   function fillBattleMenuDetails(mon, battleHp, power) {
     const playerName = document.getElementById("playerName");
-    //playerName.textContent = activeUnit.name || "Dresseur";
-
     const playerHp = document.getElementById("playerHp");
     const playerPowerEl = document.getElementById("playerPower");
     const monName = document.getElementById("monsterName");
@@ -790,7 +721,7 @@ questions = window.QUESTIONS;
     monHp.textContent = "❤️".repeat(Math.round(monsterHpVal));
     monPowerEl.textContent = "⚡".repeat(mon.power || 1);
 
-    captureBtn.textContent ="Capture ( " + `${captureRate} % ` + ")"
+    captureBtn.textContent = "Capture ( " + `${captureRate} % ` + ")"
 
     playerHp.textContent = "❤️".repeat(Math.round(lives));
     playerPowerEl.textContent = "⚡".repeat(activeUnit.power);
@@ -803,7 +734,6 @@ questions = window.QUESTIONS;
       </svg> <span style="font-weight:bold;"> X ${balls}</span>`;
     }
   }
-
 
   // ---------- Battle flow ----------
   function startBattle(mon) {
@@ -1096,38 +1026,8 @@ questions = window.QUESTIONS;
     const raw = pick / 2;
     return roundToHalf(raw);
   }
-  function dmgInflictedFrom(powerPlayer) {
-    const pick = randHalfUpTo(powerPlayer);
-    const raw = pick / 1.5;
-    return roundToHalf(raw);
-  }
-  function captureProbability(
-    playerPow,
-    playerHp,
-    enemyPow,
-    enemyHp,
-    enemyMaxHp
-  ) {
-    // Nouveau calcul: base 60% à niveau égal (niveau = puissance + vie max),
-    // décroît rapidement si l'ennemi est au-dessus, monte si on est au-dessus.
-    // Garde les bonus existants: affaiblir l'ennemi ↑, et chaque balle lancée ↑ (géré ailleurs).
-    const playerLevel = playerPow + activeUnit.hpMax; // niveau joueur = puissance + vie max
-    const enemyLevel = enemyPow + enemyMaxHp; // niveau ennemi = puissance + vie max
-    const delta = playerLevel - enemyLevel; // différence de niveau (peut être négative)
 
-    // Sigmoïde calibrée: P(delta=0) ≈ 0.60, P(delta=-9) ≈ 0.10
-    const k = 0.289136; // pente
-    const x0 = -1.401; // décalage
-    const base = 1 / (1 + Math.exp(-k * (delta - x0)));
 
-    // Bonus quand l'ennemi est affaibli (inchangé dans l'esprit)
-    const weaken = 1 - enemyHp / (enemyMaxHp + 0.001);
-    let p = base + 0.95 * weaken + (rng() * 0.02 - 0.01); // petite variabilité
-
-    // Encadrement doux
-    p = Math.max(0.04, Math.min(0.95, p));
-    return p;
-  }
 
   // ---------- Game reset / HUD ----------
   function resetGame() {
@@ -1488,7 +1388,6 @@ questions = window.QUESTIONS;
   }
 
   function renderPersonalAnswers() {
-    const answerList = JSON.parse(localStorage.getItem("angryflappy_personal_answered") || "[]");
     const questionsContainer = document.getElementById("questionsContainer");
     const answersContainer = document.getElementById("answersContainer");
     questionsContainer.innerHTML = "";
@@ -1714,24 +1613,7 @@ questions = window.QUESTIONS;
     }
   }
 
-  function drawWorldZoomed() {
-    const z = S.battleZoom;
-    ctx.save();
-    ctx.translate(W * S.camX, H * S.camY);
-    ctx.scale(z, z);
-    ctx.translate(-bird.x, -bird.y);
-    drawWorldNormal();
-    ctx.restore();
-  }
 
-  function drawGBPanel(x, y, w, h) {
-    ctx.fillStyle = "#0f380f";
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = "#9bbc0f";
-    ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-    ctx.fillStyle = "#8bac0f";
-    ctx.fillRect(x + 8, y + 8, w - 16, h - 16);
-  }
 
   function getBattlePositions() {
     return {
@@ -1953,35 +1835,32 @@ questions = window.QUESTIONS;
       return String(s).toLowerCase().replace(/\s+/g, "");
     }
 
-    if (qObj && qObj.type === "personal") {
+    // Sadece doğru/yanlış kontrolü - personal question ayrımı yok
+    if (qObj && normalize(userAnswer) === normalize(qObj.answer)) {
+      // Doğru cevap
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
-      battle.hp = Math.max(0, roundToHalf(battle.hp - 1)); // <-- SABİT 1 HASAR!
+
+      battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
       fillBattleMenuDetails(battle.mon, battle.hp, activeUnit.power);
+
       if (battle.hp <= 0) {
-        setTimeout(() => {
-          captureBtn.click();
-        }, 400);
+        captureHint.textContent = "Monster defeated! Automatic capture...";
+        handleCaptureSuccess();
         return;
       }
-      captureHint.textContent = "Personal question answered! You attacked the monster.";
+
+      captureHint.textContent = "Correct! You attacked the monster.";
       questionText.textContent = pickQuestion();
       battleAnswer.value = "";
-      const userAnswerPersonalQuestion = {
-        question: qObj.question,
-        answer: userAnswer
-      }
-      answeredPersonalQuestions.push(userAnswerPersonalQuestion);
-      localStorage.setItem("angryflappy_personal_answered", JSON.stringify(answeredPersonalQuestions));
       setTimeout(() => battleAnswer.focus(), 30);
-      return;
-    }
 
-    if (qObj.type !== "personal" && qObj.type === "genarel" && normalize(userAnswer) !== normalize(qObj.answer)) {
-      if (!answeredQuestionIds.includes(qObj.id)) {
+    } else {
+      if (qObj && !answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
+
       captureHint.textContent = "Wrong answer! Battle ended.";
       setTimeout(() => {
         showFleeAndEnd(false);
@@ -1989,32 +1868,10 @@ questions = window.QUESTIONS;
       return;
     }
 
-
-    if (qObj && normalize(userAnswer) === normalize(qObj.answer)) {
-      if (!answeredQuestionIds.includes(qObj.id)) {
-        answeredQuestionIds.push(qObj.id);
-      }
-    }
-
     updateHUD();
     battleToi.innerHTML = toiPanelHTML();
-
-    battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
-    fillBattleMenuDetails(battle.mon, battle.hp, activeUnit.power);
-    if (battle.hp <= 0) {
-      captureHint.textContent = "Monster is weak enough to be captured! Use the Capture button.";
-      setTimeout(() => {
-        showFleeAndEnd(false);
-      }, 1200);
-      return;
-    }
-
-    // Saldırı başarılı, yeni soru gelsin
-    captureHint.textContent = "Correct! You attacked the monster.";
-    questionText.textContent = pickQuestion();
-    battleAnswer.value = "";
-    setTimeout(() => battleAnswer.focus(), 30);
   });
+
   fleeBtn.addEventListener("click", () => {
     ++lostBattlesRun;
     showFleeAndEnd(true);
@@ -2027,7 +1884,7 @@ questions = window.QUESTIONS;
     return parseInt(rate, 10);
   }
 
-  captureBtn.addEventListener("click", () => {
+  window.handleCaptureSuccess = function handleCaptureSuccess() {
     if (!battle || anim.capture.active) return;
     if (balls <= 0) {
       captureHint.textContent = "No balls left!";
@@ -2088,7 +1945,7 @@ questions = window.QUESTIONS;
         showFleeAndEnd(false);
       }, 900);
     }, 900);
-  });
+  };
 
   function enemyAttack() {
     if (!battle) return;
@@ -2210,95 +2067,6 @@ questions = window.QUESTIONS;
     renderAll();
     if (bySel) bySel.onchange = renderAll;
     if (dirSel) dirSel.onchange = renderAll;
-  }
-  function renderCollection(container) {
-    if (!container) return;
-    container.innerHTML = "";
-    if (collection.length === 0) {
-      const p = document.createElement("p");
-      p.textContent = "Aucun monstre capturé pour l'instant.";
-      container.appendChild(p);
-      return;
-    }
-    for (let id of collection) {
-      const [catIdx, formIdx, colorIdx] = id.split("-").map((n) => parseInt(n));
-      const name = monsterName(catIdx, formIdx, colorIdx);
-      const hp = hpForId(catIdx, formIdx, colorIdx);
-      const power = powerForId(catIdx, formIdx, colorIdx);
-      const col = Colors[colorIdx].c;
-      const mon = {
-        id,
-        name,
-        catIdx,
-        formIdx,
-        colorIdx,
-        eyes: eyeCountFor(id),
-        color: col,
-        r: 18,
-        maxhp: hp,
-        power: power,
-      };
-      const card = document.createElement("div");
-      card.className = "card selectable";
-      const thumb = document.createElement("div");
-      thumb.className = "thumb";
-      const img = document.createElement("img");
-      img.alt = name;
-      img.width = 56;
-      img.height = 56;
-      img.style.imageRendering = "pixelated";
-      img.src = renderMonsterPreview(mon, 56);
-      thumb.appendChild(img);
-      const box = document.createElement("div");
-      const title = document.createElement("div");
-      title.className = "title";
-      title.textContent = name;
-      const meta = document.createElement("div");
-      meta.className = "meta";
-      meta.textContent = `HP: ${hp} • Power: ${power}`;
-      box.appendChild(meta);
-      card.appendChild(thumb);
-      card.appendChild(box);
-      container.appendChild(card);
-      card.addEventListener("click", () => {
-        selectedMonsterId = id;
-        for (const n of container.querySelectorAll(".card"))
-          n.classList.remove("selected");
-        card.classList.add("selected");
-        updateSendButtons();
-      });
-    }
-  }
-  function renderMonsterPreview(mon, size) {
-    const off = document.createElement("canvas");
-    off.width = size;
-    off.height = size;
-    const c2 = off.getContext("2d");
-    c2.translate(size / 2, size / 2);
-    const tmp = { ...mon, x: 0, y: 0, r: Math.min(18, size * 0.28) };
-    // drawMonsterBody(tmp, c2, 1.0);
-    return off.toDataURL();
-  }
-
-  // ---------- Battle extras ----------
-  function drawGBBolt(x, y) {
-    ctx.fillStyle = "#0f380f";
-    const pts = [
-      [0, 0],
-      [6, 0],
-      [2, 8],
-      [8, 8],
-      [0, 16],
-      [2, 10],
-      [-4, 10],
-    ];
-    ctx.beginPath();
-    ctx.moveTo(x + pts[0][0], y + pts[0][1]);
-    for (let i = 1; i < pts.length; i++) {
-      ctx.lineTo(x + pts[i][0], y + pts[i][1]);
-    }
-    ctx.closePath();
-    ctx.fill();
   }
 
   // ---------- Main loop ----------
