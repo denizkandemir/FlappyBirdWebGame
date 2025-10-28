@@ -176,7 +176,7 @@
     }
     async _flush(){
       if (!this.profile) return;
-      const out = { ...this.cache, __profile__: this.profile, __updatedAt__: Date.now(), __version__: 1 };
+      const out = { ...this.cache, profile: this.profile, __updatedAt__: Date.now(), __version__: 1 };
       try{ await this.backend.write(this.profile.id, out); }
       catch(e){ console.error('Save flush error', e); }
     }

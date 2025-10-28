@@ -13,6 +13,7 @@ questions = window.QUESTIONS;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
   let answeredQuestionIds = [];
+  let currentProfile = {}
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -54,24 +55,39 @@ questions = window.QUESTIONS;
   const battleToi = document.getElementById("battleToi");
 
   let playerPower = 2;
-  let profile = {};
-  let playerFullName = "Dresseur";
   let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false, mon: null };
 
   window.addEventListener("af:login:done", () => {
-    try {
-      profile = JSON.parse(localStorage.getItem("__profile__") || "{}");
-      playerFullName = profile.fullName || "Dresseur";
-      if (activeUnit && !activeUnit.isMonster) {
-        activeUnit.name = playerFullName;
+     let displayName = activeUnit.name;
+    if (!displayName || displayName === "Error Display Name" || displayName === "Error Reset Game" || displayName === "") {
+      try {
+        let currentProfile = null;
+
+        if (window.profile) {
+          currentProfile = window.profile;
+        }
+        else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
+          currentProfile = window.AF_SaveManager.profile;
+        }
+        else {
+          currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
+        }
+
+        console.log("Profile found:", currentProfile);
+
+        if (currentProfile && currentProfile.fullName) {
+          displayName = currentProfile.fullName;
+        } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
+          displayName = currentProfile.firstName + " " + currentProfile.lastName;
+        } else if (currentProfile && currentProfile.firstName) {
+          displayName = currentProfile.firstName;
+        } else {
+          displayName = "Name Error";
+        }
+      } catch (e) {
+        console.log("Profile error:", e);
+        displayName = "Name Error";
       }
-      updateHUD();
-    } catch (e) {
-      profile = {};
-      if (activeUnit && !activeUnit.isMonster) {
-        activeUnit.name = playerFullName;
-      }
-      updateHUD();
     }
   });
 
@@ -713,18 +729,48 @@ questions = window.QUESTIONS;
     const monPowerEl = document.getElementById("monsterPower");
     const captureRateP = document.getElementById("captureRate");
 
+    let displayName = activeUnit.name;
+    if (!displayName || displayName === "Error Display Name" || displayName === "Error Reset Game" || displayName === "") {
+      try {
+        let currentProfile = null;
+
+        if (window.profile) {
+          currentProfile = window.profile;
+        }
+        else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
+          currentProfile = window.AF_SaveManager.profile;
+        }
+        else {
+          currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
+        }
+
+        console.log("Profile found:", currentProfile);
+
+        if (currentProfile && currentProfile.fullName) {
+          displayName = currentProfile.fullName;
+        } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
+          displayName = currentProfile.firstName + " " + currentProfile.lastName;
+        } else if (currentProfile && currentProfile.firstName) {
+          displayName = currentProfile.firstName;
+        } else {
+          displayName = "Dresseur";
+        }
+      } catch (e) {
+        console.log("Profile error:", e);
+        displayName = "Name Error";
+      }
+    }
+
     const captureRate = getCaptureRate(mon, battleHp, power);
     captureRateP.textContent = `${captureRate} % `;
-
-    monName.textContent = mon.name || "Dresseur";
+    monName.textContent = mon.name || "Error Fill Menu Details";
     const monsterHpVal = (battle && battle.hp != null ? battle.hp : mon.maxhp);
     monHp.textContent = "❤️".repeat(Math.round(monsterHpVal));
     monPowerEl.textContent = "⚡".repeat(mon.power || 1);
-
     captureBtn.textContent = "Capture ( " + `${captureRate} % ` + ")"
-
     playerHp.textContent = "❤️".repeat(Math.round(lives));
     playerPowerEl.textContent = "⚡".repeat(activeUnit.power);
+    playerName.textContent = displayName;
     const playerBalls = document.getElementById("playerBalls");
     if (playerBalls) {
       playerBalls.innerHTML =
@@ -815,19 +861,7 @@ questions = window.QUESTIONS;
     <circle cx='32' cy='32' r='3' fill='#ffffff'></circle>
   </svg>`;
   }
-  function toiPanelHTML() {
-    const hearts = heartsHTML(lives, activeUnit.hpMax);
-    const bolts = "⚡".repeat(activeUnit.power);
-    return `<div class="toi-left"><span class="toi-name">${activeUnit.name || "Dresseur"
-      }</span></div>
-            <div class="toi-stats">
-              <div class="toi-hearts">${hearts}</div>
-              <div class="toi-balls">${neonBallSVG(
-        20
-      )} <strong>x ${balls}</strong></div>
-              <div class="toi-power" title="Puissance">${bolts}</div>
-            </div>`;
-  }
+
   function positionBattleOverlay() {
     const dialogH = dialogTurn.getBoundingClientRect().height;
     battleToi.classList.remove("hidden");
@@ -1041,9 +1075,40 @@ questions = window.QUESTIONS;
       control.hold = false;
     }
 
+    let displayName = activeUnit.name;
+    if (!displayName || displayName === "Error Display Name" || displayName === "Error Reset Game" || displayName === "") {
+      try {
+        let currentProfile = null;
+
+        if (window.profile) {
+          currentProfile = window.profile;
+        }
+        else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
+          currentProfile = window.AF_SaveManager.profile;
+        }
+        else {
+          currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
+        }
+
+        console.log("Profile found:", currentProfile);
+
+        if (currentProfile && currentProfile.fullName) {
+          displayName = currentProfile.fullName;
+        } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
+          displayName = currentProfile.firstName + " " + currentProfile.lastName;
+        } else if (currentProfile && currentProfile.firstName) {
+          displayName = currentProfile.firstName;
+        } else {
+          displayName = "Name Error Reset Game";
+        }
+      } catch (e) {
+        console.log("Profile error:", e);
+        displayName = "Name Error Reset Game";
+      }
+    }
     updateHUD();
     activeUnit = {
-      name: playerFullName,
+      name: displayName,
       hpMax: S.maxLives,
       power: playerPower,
       isMonster: false,

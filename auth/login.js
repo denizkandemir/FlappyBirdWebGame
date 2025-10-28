@@ -176,7 +176,7 @@ function ensureStyles(){
           return;
         }
         window.AF_SaveManager.useProfile({ firstName, lastName, fullName }).then(profile=>{
-          window.__PROFILE__ = profile; // expose
+          window.profile = profile; // expose
           overlay.remove();
           // After login, update a few UI counters if present (best score, balls, etc.)
           try{
