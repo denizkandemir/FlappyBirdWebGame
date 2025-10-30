@@ -1,15 +1,17 @@
 * {
   box-sizing: border-box;
 }
-:root{
+
+:root {
   --neo-bg: #060a13;
-  --neo-panel: rgba(8,14,24,.65);
-  --neo-border: #0ff;            
-  --neo-border-2: #8aff00;       
-  --neo-accent: #ff2eac;        
+  --neo-panel: rgba(8, 14, 24, .65);
+  --neo-border: #0ff;
+  --neo-border-2: #8aff00;
+  --neo-accent: #ff2eac;
   --neo-text: #e8f7ff;
   --neo-muted: #8aa6c7;
 }
+
 html,
 body {
   height: 100%;
@@ -18,25 +20,54 @@ body {
   font-family: "Press Start 2P", "Silkscreen", monospace;
   color: var(--ink);
 }
+
 body {
-  background: radial-gradient(
-    1200px 800px at 20% 10%,
-    #12224a 0%,
-    #0c1230 50%,
-    #07081a 100%
-  );
+  background: radial-gradient(1200px 800px at 20% 10%,
+      #12224a 0%,
+      #0c1230 50%,
+      #07081a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
+
 /* ===== NEON BUTTONS + CLEAN LAYOUT ===== */
 
+/* Font scaling için CSS custom properties */
+:root {
+  --base-font-size: 16px;
+  --scale-factor: 1;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --base-font-size: 14px;
+    --scale-factor: 0.8;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --base-font-size: 12px;
+    --scale-factor: 0.7;
+  }
+}
+
+body {
+  font-size: var(--base-font-size);
+}
+
+.pixel-btn {
+  font-size: calc(var(--base-font-size) * var(--scale-factor));
+}
+
 /* Ortak ayarlar */
-.btn, .pixel-btn {
-  --glow: rgba(0,255,255,.35);
-  --border: rgba(0,255,255,.55);
-  --bg: rgba(10,16,28,.6);
+.btn,
+.pixel-btn {
+  --glow: rgba(0, 255, 255, .35);
+  --border: rgba(0, 255, 255, .55);
+  --bg: rgba(10, 16, 28, .6);
   --txt: #e8f7ff;
 
   position: relative;
@@ -46,18 +77,19 @@ body {
   gap: .5rem;
 
   padding: .8rem 1.2rem;
-  min-width: 260px;                 /* büyük butonlar için sabit genişlik */
+  min-width: 260px;
+  /* büyük butonlar için sabit genişlik */
   border: 2px solid var(--border);
   border-radius: 10px;
 
-  background: linear-gradient(180deg, rgba(12,22,36,.85), rgba(8,14,24,.6));
+  background: linear-gradient(180deg, rgba(12, 22, 36, .85), rgba(8, 14, 24, .6));
   color: var(--txt);
-  text-shadow: 0 0 6px rgba(0,0,0,.6);
+  text-shadow: 0 0 6px rgba(0, 0, 0, .6);
 
   box-shadow:
     0 0 18px var(--glow),
-    inset 0 0 0 1px rgba(255,255,255,.05),
-    0 6px 0 rgba(0,0,0,.7);
+    inset 0 0 0 1px rgba(255, 255, 255, .05),
+    0 6px 0 rgba(0, 0, 0, .7);
   transform: translateY(0);
   transition: transform .08s ease, box-shadow .15s ease, filter .15s ease;
 }
@@ -69,46 +101,55 @@ body {
   margin-top: 12px;
 }
 
-.btn:hover, .pixel-btn:hover {
+.btn:hover,
+.pixel-btn:hover {
   box-shadow:
     0 0 26px var(--glow),
-    inset 0 0 0 1px rgba(255,255,255,.08),
-    0 10px 18px rgba(0,0,0,.55);
+    inset 0 0 0 1px rgba(255, 255, 255, .08),
+    0 10px 18px rgba(0, 0, 0, .55);
   filter: saturate(1.2);
 }
 
-.btn:active, .pixel-btn:active {
+.btn:active,
+.pixel-btn:active {
   transform: translateY(2px);
   box-shadow:
     0 0 16px var(--glow),
-    inset 0 0 0 1px rgba(255,255,255,.06),
-    0 2px 0 rgba(0,0,0,.8);
+    inset 0 0 0 1px rgba(255, 255, 255, .06),
+    0 2px 0 rgba(0, 0, 0, .8);
 }
 
 /* Varyantlar (aynı sınıfları kullanıyoruz) */
-.pixel-btn.primary, .btn.primary {
-  --glow: rgba(0,255,255,.45);
+.pixel-btn.primary,
+.btn.primary {
+  --glow: rgba(0, 255, 255, .45);
   --border: #00eaff;
-  background: radial-gradient(160% 120% at 50% -40%, rgba(0,240,255,.28), rgba(8,14,24,.75));
+  background: radial-gradient(160% 120% at 50% -40%, rgba(0, 240, 255, .28), rgba(8, 14, 24, .75));
 }
-.pixel-btn.success, .btn.success {
-  --glow: rgba(138,255,0,.45);
+
+.pixel-btn.success,
+.btn.success {
+  --glow: rgba(138, 255, 0, .45);
   --border: #8aff00;
-  background: radial-gradient(160% 120% at 50% -40%, rgba(138,255,0,.22), rgba(8,14,24,.75));
+  background: radial-gradient(160% 120% at 50% -40%, rgba(138, 255, 0, .22), rgba(8, 14, 24, .75));
 }
-.pixel-btn.danger, .btn.danger {
-  --glow: rgba(255,46,172,.45);
+
+.pixel-btn.danger,
+.btn.danger {
+  --glow: rgba(255, 46, 172, .45);
   --border: #ff2eac;
-  background: radial-gradient(160% 120% at 50% -40%, rgba(255,46,172,.22), rgba(8,14,24,.75));
+  background: radial-gradient(160% 120% at 50% -40%, rgba(255, 46, 172, .22), rgba(8, 14, 24, .75));
 }
 
 /* Ghost/disabled */
-.btn.ghost, .pixel-btn.ghost,
-.btn[disabled], .pixel-btn[disabled]{
+.btn.ghost,
+.pixel-btn.ghost,
+.btn[disabled],
+.pixel-btn[disabled] {
   opacity: .45;
   cursor: default;
   filter: grayscale(.2);
-  box-shadow: 0 0 8px rgba(255,255,255,.05), 0 4px 0 rgba(0,0,0,.6);
+  box-shadow: 0 0 8px rgba(255, 255, 255, .05), 0 4px 0 rgba(0, 0, 0, .6);
 }
 
 /* Buton sırası: merkezde, düzenli aralık */
@@ -121,55 +162,73 @@ body {
 }
 
 /* Sort bölümünü hizala ve neon kenarla uyumlu yap */
-#sortControls, #sortControlsStart {
+#sortControls,
+#sortControlsStart {
   display: flex;
   gap: 12px;
   justify-content: center;
 }
-.sortSel, .pixel-input, select {
+
+.sortSel,
+.pixel-input,
+select {
   min-width: 220px;
   padding: .6rem .8rem;
   border-radius: 10px;
-  border: 2px solid rgba(0,255,255,.35);
-  background: rgba(8,14,24,.7);
+  border: 2px solid rgba(0, 255, 255, .35);
+  background: rgba(8, 14, 24, .7);
   color: #8aa6c7;
-  box-shadow: inset 0 0 8px rgba(0,255,255,.12);
+  box-shadow: inset 0 0 8px rgba(0, 255, 255, .12);
 }
 
 
 
 /* “Retry / Send” butonlarını öne çıkar */
-#retryBtn { border-color:#8aff00; box-shadow: 0 0 22px rgba(138,255,0,.35), 0 6px 0 rgba(0,0,0,.7); }
-#sendBtnOver { border-color:#00eaff; box-shadow: 0 0 22px rgba(0,255,255,.35), 0 6px 0 rgba(0,0,0,.7); }
+#retryBtn {
+  border-color: #8aff00;
+  box-shadow: 0 0 22px rgba(138, 255, 0, .35), 0 6px 0 rgba(0, 0, 0, .7);
+}
+
+#sendBtnOver {
+  border-color: #00eaff;
+  box-shadow: 0 0 22px rgba(0, 255, 255, .35), 0 6px 0 rgba(0, 0, 0, .7);
+}
 
 /* Panel içindeki tipografinin kontrastını artır */
-.panel .score-title, .panel .gb-h2, .panel .gb-h3, .panel .score-row b {
+.panel .score-title,
+.panel .gb-h2,
+.panel .gb-h3,
+.panel .score-row b {
   letter-spacing: 1px;
   color: #8aa6c7;
 }
-.panel .score-row span { color: #8aa6c7; }
+
+.panel .score-row span {
+  color: #8aa6c7;
+}
 
 /* Panel kenarını biraz daha belirginleştir */
-.panel, .gb-panel {
-  border-color: rgba(0,255,255,.28);
+.panel,
+.gb-panel {
+  border-color: rgba(0, 255, 255, .28);
   box-shadow:
-    0 0 0 1px rgba(0,255,255,.12) inset,
-    0 0 24px rgba(0,255,255,.22),
-    0 12px 28px rgba(0,0,0,.45);
+    0 0 0 1px rgba(0, 255, 255, .12) inset,
+    0 0 24px rgba(0, 255, 255, .22),
+    0 12px 28px rgba(0, 0, 0, .45);
 }
 
 .synth-bg {
-  background: radial-gradient(
-    1200px 800px at 20% 10%,
-    #12224a 0%,
-    #0c1230 50%,
-    #07081a 100%
-  );
+  background: radial-gradient(1200px 800px at 20% 10%,
+      #12224a 0%,
+      #0c1230 50%,
+      #07081a 100%);
 }
+
 #gameWrap {
   position: relative;
   width: min(95vw, 900px);
 }
+
 #game {
   display: block;
   width: min(95vw, 900px);
@@ -184,12 +243,10 @@ body {
 
 canvas {
   display: block;
-  background: radial-gradient(
-    1200px 800px at 20% 10%,
-    #12224a 0%,
-    #0c1230 50%,
-    #07081a 100%
-  );
+  background: radial-gradient(1200px 800px at 20% 10%,
+      #12224a 0%,
+      #0c1230 50%,
+      #07081a 100%);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
 }
 
@@ -202,6 +259,7 @@ canvas {
   pointer-events: none;
   z-index: 20;
 }
+
 #hud {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -209,6 +267,7 @@ canvas {
   gap: 8px;
   pointer-events: none;
 }
+
 .pixel-hud-center {
   justify-self: center;
   pointer-events: auto;
@@ -217,12 +276,14 @@ canvas {
   padding: 0.2rem 0.6rem;
   font-weight: 800;
 }
+
 .pixel-hud-left {
   justify-self: start;
   pointer-events: auto;
   display: flex;
   gap: 4px;
 }
+
 .pixel-hud-right {
   justify-self: end;
   display: flex;
@@ -233,6 +294,7 @@ canvas {
   padding: 0.2rem 0.6rem;
   pointer-events: auto;
 }
+
 #hudPower {
   display: flex;
   align-items: center;
@@ -242,11 +304,13 @@ canvas {
   padding: 0.2rem 0.6rem;
   font-weight: 800;
 }
+
 .heartSvg {
   width: 26px;
   height: 26px;
   filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.2));
 }
+
 body.in-battle #hudWrap {
   position: fixed;
   bottom: 6px;
@@ -257,7 +321,9 @@ body.in-battle #hudWrap {
   z-index: 20;
 }
 
-.overlay{ background: radial-gradient(1000px 700px at 50% 10%, rgba(10,18,30,.65), rgba(3,6,12,.88)); }
+.overlay {
+  background: radial-gradient(1000px 700px at 50% 10%, rgba(10, 18, 30, .65), rgba(3, 6, 12, .88));
+}
 
 .overlay {
   position: fixed;
@@ -269,137 +335,176 @@ body.in-battle #hudWrap {
   padding: 20px;
   z-index: 30;
 }
+
 .overlay.show {
   display: flex;
 
 }
 
 .panel,
-.gb-panel{
+.gb-panel {
   background: var(--neo-panel);
   color: var(--neo-text);
   border-radius: 12px;
-  border: 2px solid rgba(0,255,255,.35);
+  border: 2px solid rgba(0, 255, 255, .35);
   box-shadow:
-    0 0 0 1px rgba(0,255,255,.15) inset,
-    0 0 22px rgba(0,255,255,.25),
-    0 12px 28px rgba(0,0,0,.45);
+    0 0 0 1px rgba(0, 255, 255, .15) inset,
+    0 0 22px rgba(0, 255, 255, .25),
+    0 12px 28px rgba(0, 0, 0, .45);
   backdrop-filter: blur(10px) saturate(120%);
 }
 
-.gb-h2, .gb-h3{
+.gb-h2,
+.gb-h3 {
   color: var(--neo-text);
-  text-shadow: 0 0 18px rgba(0,255,255,.35);
+  text-shadow: 0 0 18px rgba(0, 255, 255, .35);
   letter-spacing: 2px;
 }
 
 /* Score kutuları: cam + neon kenar */
-.score-col{
-  background: rgba(10,16,28,.35);
-  border: 1.5px solid rgba(0,255,255,.35);
+.score-col {
+  background: rgba(10, 16, 28, .35);
+  border: 1.5px solid rgba(0, 255, 255, .35);
   box-shadow:
-    0 0 0 1px rgba(0,255,255,.15) inset,
-    0 8px 20px rgba(0,0,0,.45);
+    0 0 0 1px rgba(0, 255, 255, .15) inset,
+    0 8px 20px rgba(0, 0, 0, .45);
   color: var(--neo-text);
 }
-.score-title{ color: var(--neo-muted); }
+
+.score-title {
+  color: var(--neo-muted);
+}
 
 /* HUD’ı neon cam bar yap */
-#hud{
-  background: rgba(8,14,24,.55);
-  border: 1.5px solid rgba(0,255,255,.35);
+#hud {
+  background: rgba(8, 14, 24, .55);
+  border: 1.5px solid rgba(0, 255, 255, .35);
   box-shadow:
-    0 0 0 1px rgba(0,255,255,.15) inset,
-    0 8px 20px rgba(0,0,0,.45);
+    0 0 0 1px rgba(0, 255, 255, .15) inset,
+    0 8px 20px rgba(0, 0, 0, .45);
   color: var(--neo-text);
 }
+
 .pixel-hud-center,
 .pixel-hud-right,
-#hudPower{
-  background: rgba(8,14,24,.6);
-  border: 1.5px solid rgba(0,255,255,.35);
+#hudPower {
+  background: rgba(8, 14, 24, .6);
+  border: 1.5px solid rgba(0, 255, 255, .35);
   color: var(--neo-text);
-  box-shadow: 0 0 14px rgba(0,255,255,.2);
+  box-shadow: 0 0 14px rgba(0, 255, 255, .2);
 }
 
 /* Butonlar: üç ana neon tonu */
-.pixel-btn, .btn{
-  background: rgba(10,16,28,.6);
+.pixel-btn,
+.btn {
+  background: rgba(10, 16, 28, .6);
   color: var(--neo-text);
-  border: 2px solid rgba(0,255,255,.45);
+  border: 2px solid rgba(0, 255, 255, .45);
   box-shadow:
-    0 0 12px rgba(0,255,255,.25),
-    0 4px 0 rgba(0,0,0,.7);
+    0 0 12px rgba(0, 255, 255, .25),
+    0 4px 0 rgba(0, 0, 0, .7);
 }
-.pixel-btn.primary{        /* mavi/cyan */
-  background: rgba(0,255,255,.12);
+
+.pixel-btn.primary {
+  /* mavi/cyan */
+  background: rgba(0, 255, 255, .12);
   border-color: var(--neo-border);
-  box-shadow: 0 0 18px rgba(0,255,255,.35), 0 4px 0 rgba(0,0,0,.7);
+  box-shadow: 0 0 18px rgba(0, 255, 255, .35), 0 4px 0 rgba(0, 0, 0, .7);
 }
-.pixel-btn.success{        /* lime */
-  background: rgba(138,255,0,.12);
+
+.pixel-btn.success {
+  /* lime */
+  background: rgba(138, 255, 0, .12);
   border-color: var(--neo-border-2);
-  box-shadow: 0 0 18px rgba(138,255,0,.35), 0 4px 0 rgba(0,0,0,.7);
+  box-shadow: 0 0 18px rgba(138, 255, 0, .35), 0 4px 0 rgba(0, 0, 0, .7);
 }
-.pixel-btn.danger{         /* magenta */
-  background: rgba(255,46,172,.12);
+
+.pixel-btn.danger {
+  /* magenta */
+  background: rgba(255, 46, 172, .12);
   border-color: var(--neo-accent);
-  box-shadow: 0 0 18px rgba(255,46,172,.35), 0 4px 0 rgba(0,0,0,.7);
+  box-shadow: 0 0 18px rgba(255, 46, 172, .35), 0 4px 0 rgba(0, 0, 0, .7);
 }
-.btn.ghost{ opacity:.45; }
+
+.btn.ghost {
+  opacity: .45;
+}
 
 /* Input/Select (karanlık alan, neon border) */
 .pixel-input,
 .sortSel,
-select{
-  background: rgba(8,14,24,.7);
+select {
+  background: rgba(8, 14, 24, .7);
   color: #506b8b;
-  border: 2px solid rgba(0,255,255,.35);
-  box-shadow: 0 0 12px rgba(0,255,255,.2) inset, 0 4px 0 rgba(0,0,0,.6);
+  border: 2px solid rgba(0, 255, 255, .35);
+  box-shadow: 0 0 12px rgba(0, 255, 255, .2) inset, 0 4px 0 rgba(0, 0, 0, .6);
 }
-.pixel-input::placeholder{ color: var(--neo-muted); }
+
+.pixel-input::placeholder {
+  color: var(--neo-muted);
+}
 
 /* “PRESS START” vs. neon parıltı */
-.press-start{
+.press-start {
   color: var(--neo-text);
-  text-shadow: 0 0 10px rgba(0,255,255,.45), 0 0 24px rgba(0,255,255,.25);
+  text-shadow: 0 0 10px rgba(0, 255, 255, .45), 0 0 24px rgba(0, 255, 255, .25);
 }
 
 /* Pokedex kartları: gri değil neon hafif */
-.dex .card{
-  background: rgba(8,14,24,.6);
+.dex .card {
+  background: rgba(8, 14, 24, .6);
   color: #8aa6c7;
   margin-bottom: 3px;
-  border: 1.5px solid rgba(0,255,255,.28);
-  box-shadow: 0 0 0 1px rgba(0,255,255,.12) inset, 0 6px 18px rgba(0,0,0,.55);
+  border: 1.5px solid rgba(0, 255, 255, .28);
+  box-shadow: 0 0 0 1px rgba(0, 255, 255, .12) inset, 0 6px 18px rgba(0, 0, 0, .55);
 }
-.dex .meta{ color: var(--neo-muted); }
-.dex .thumb{ background: rgba(8,14,24,.35); border-color: rgba(0,255,255,.25); }
+
+.dex .meta {
+  color: var(--neo-muted);
+}
+
+.dex .thumb {
+  background: rgba(8, 14, 24, .35);
+  border-color: rgba(0, 255, 255, .25);
+}
 
 /* Corruption görsel çerçevesi neon */
-.corrupt-visual img{
-  background: rgba(8,14,24,.55);
-  box-shadow: 0 0 20px rgba(255,46,172,.35), 0 6px 0 rgba(0,0,0,.6);
+.corrupt-visual img {
+  background: rgba(8, 14, 24, .55);
+  box-shadow: 0 0 20px rgba(255, 46, 172, .35), 0 6px 0 rgba(0, 0, 0, .6);
 }
 
 /* Küçük neon “nefes” animasyonu */
-@keyframes neoPulse{
-  0%,100%{ box-shadow: 0 0 12px rgba(0,255,255,.25); }
-  50%{    box-shadow: 0 0 22px rgba(0,255,255,.45); }
+@keyframes neoPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(0, 255, 255, .25);
+  }
+
+  50% {
+    box-shadow: 0 0 22px rgba(0, 255, 255, .45);
+  }
 }
+
 .pixel-hud-center,
-#hudPower{ animation: neoPulse 2.6s ease-in-out infinite; }
+#hudPower {
+  animation: neoPulse 2.6s ease-in-out infinite;
+}
 
 /* Canvas çerçevesi hafif neon */
-#game{
+#game {
   box-shadow:
-    0 0 26px rgba(0,255,255,.18),
-    0 18px 50px rgba(0,0,0,.55);
-  border: 1px solid rgba(0,255,255,.15);
+    0 0 26px rgba(0, 255, 255, .18),
+    0 18px 50px rgba(0, 0, 0, .55);
+  border: 1px solid rgba(0, 255, 255, .15);
 }
 
 /* Başlık/altbaşlık tipografisini netle */
-.gb-title, .gb-sub { color: #8aa6c7; }
+.gb-title,
+.gb-sub {
+  color: #8aa6c7;
+}
 
 
 .panel {
@@ -411,6 +516,7 @@ select{
   padding: 22px 22px 18px;
   box-shadow: 0 20px 60px var(--shadow);
 }
+
 .row {
   display: flex;
   gap: 10px;
@@ -425,6 +531,7 @@ select{
   max-height: 420px;
   overflow-y: auto;
 }
+
 .dex .card {
   border: 4px solid #111827;
   border-radius: 0;
@@ -436,6 +543,7 @@ select{
   background: #fff;
   box-shadow: 0 0 0 2px #fff inset, 0 6px 0 #111827;
 }
+
 .dex .thumb {
   width: 60px;
   height: 60px;
@@ -445,19 +553,23 @@ select{
   align-items: center;
   justify-content: center;
 }
+
 .dex .meta {
   font-size: 0.85rem;
   color: #555;
 }
+
 .dex .title {
   font-weight: 700;
   margin-bottom: 5px;
 }
+
 .dex .card.selectable {
   cursor: pointer;
   user-select: none;
   transition: transform 0.05s;
 }
+
 .dex .card.selected {
   outline: none;
   border: 6px solid #ffffff;
@@ -472,13 +584,16 @@ select{
   pointer-events: none;
   z-index: 10;
 }
+
 .battle-overlay.show {
   display: block;
 }
+
 .pixel-panel {
   border: 4px solid #111827;
   border-radius: 0;
 }
+
 .pixel-btn,
 .pixel-input,
 .btn {
@@ -490,27 +605,34 @@ select{
   background: #fff;
   cursor: pointer;
 }
+
 .btn.ghost {
   opacity: 0.5;
   pointer-events: none;
 }
+
 .pixel-btn:active,
 .btn:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #111827;
 }
+
 .pixel-btn.primary {
   background: #f59e0b;
 }
+
 .pixel-btn.success {
   background: #34d399;
 }
+
 .pixel-btn.danger {
   background: #f87171;
 }
+
 .pixel-input {
   flex: 1;
 }
+
 .battle-dialog {
   position: absolute;
   left: 12px;
@@ -541,40 +663,40 @@ select{
 }
 
 .battle-top-player-menu {
-    background: rgba(10, 20, 40, 0.95);
-    border: 2px solid #00ffff;
-    border-radius: 8px;
-    padding: 10px;
-    margin: 0 auto;
-    box-shadow: 0 0 15px #00ffff;
-    color: #fff;
-    flex: 1;
+  background: rgba(10, 20, 40, 0.95);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 0 auto;
+  box-shadow: 0 0 15px #00ffff;
+  color: #fff;
+  flex: 1;
 }
 
-.game-title{
+.game-title {
   color: white;
   text-align: center;
   font-size: 24px;
 }
 
 .top-menu-p {
-    margin: 0;
-    padding: 5px;
+  margin: 0;
+  padding: 5px;
 }
 
 .ballIcon {
-  margin-bottom:3px;
+  margin-bottom: 3px;
 }
 
-.ball-menu{
+.ball-menu {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .battle-top-text-container {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .dialog-row {
@@ -583,6 +705,7 @@ select{
   margin-top: 6px;
   align-items: center;
 }
+
 .battle-dialog .dialog-row {
   display: flex;
   margin-bottom: 15px;
@@ -614,6 +737,7 @@ select{
   text-shadow: 2px 2px 0 #306230;
   margin-top: 4px;
 }
+
 .gb-sub {
   font-family: monospace;
   font-size: 14px;
@@ -621,30 +745,36 @@ select{
   opacity: 0.85;
   margin-bottom: 10px;
 }
+
 .press-start {
   font-family: monospace;
   margin: 10px 0 12px;
   font-weight: 800;
 }
+
 .blink {
   animation: blink 1s step-start infinite;
 }
+
 @keyframes blink {
   50% {
     opacity: 0;
   }
 }
+
 .gb-btn {
   background: #9bbc0f;
   color: #0f380f;
   border-color: #0f380f;
   box-shadow: 0 4px 0 #0f380f;
 }
+
 .gb-h2,
 .gb-h3 {
   font-family: monospace;
   letter-spacing: 1px;
 }
+
 .gb-details summary {
   font-family: monospace;
   cursor: pointer;
@@ -660,19 +790,21 @@ select{
   margin: 0 auto;
   box-shadow: 0 0 15px #00ffff;
   color: #fff;
-  font-family: 'Press Start 2P', monospace; /* pixel font */
+  font-family: 'Press Start 2P', monospace;
+  /* pixel font */
 }
+
 .battle-overlay .pixel-btn,
 .battle-overlay .pixel-input {
-    background: rgba(0,0,0,0.6);
-      border: 2px solid #00e5ff;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 10px 12px;
-    font-size: 16px;
-    border-radius: 4px;
-    outline: none;
-    box-shadow: inset 0 0 8px rgba(0, 229, 255);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #00e5ff;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  outline: none;
+  box-shadow: inset 0 0 8px rgba(0, 229, 255);
 }
 
 
@@ -688,6 +820,7 @@ select{
   justify-content: space-between;
   image-rendering: pixelated;
 }
+
 #hud {
   background: var(--gb4);
   border: 4px solid var(--gb1);
@@ -695,26 +828,32 @@ select{
   padding: 6px 10px;
   border-radius: 0;
 }
+
 #hud .pixel-hud-left,
 #hud .pixel-hud-center,
 #hud .pixel-hud-right {
   pointer-events: auto;
 }
+
 #score {
   font-weight: 800;
 }
+
 #balls {
   display: flex;
   align-items: center;
   gap: 6px;
 }
+
 .logo-title {
   width: min(78vw, 520px);
   image-rendering: pixelated;
 }
+
 .row.center {
   justify-content: center;
 }
+
 /* Details / Collection look */
 .dex .card {
   image-rendering: pixelated;
@@ -731,23 +870,27 @@ img {
   gap: 16px;
   margin: 10px 0 16px;
 }
+
 .score-col {
   border: 4px solid var(--gb1);
   box-shadow: 0 4px 0 var(--gb1);
   padding: 10px;
   background: var(--gb4);
 }
+
 .score-title {
   text-align: center;
   margin-bottom: 8px;
   font-weight: 800;
 }
+
 .score-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 4px 0;
 }
+
 .score-row span {
   opacity: 0.9;
 }
@@ -764,62 +907,62 @@ img {
 
 /* START butonu için özel neon stil */
 #startBtn {
-  --glow: rgba(0,191,255,.55);
+  --glow: rgba(0, 191, 255, .55);
   --border: #00bfff;
-  --bg-gradient: radial-gradient(160% 120% at 50% -30%, rgba(0,191,255,.35), rgba(8,14,24,.8));
-  
+  --bg-gradient: radial-gradient(160% 120% at 50% -30%, rgba(0, 191, 255, .35), rgba(8, 14, 24, .8));
+
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  
+
   padding: 1.2rem 2.4rem;
   min-width: 280px;
   border: 3px solid var(--border);
   border-radius: 12px;
-  
+
   background: var(--bg-gradient);
   color: #e8f7ff;
   font-family: 'Press Start 2P', monospace;
   font-size: 16px;
   letter-spacing: 2px;
-  text-shadow: 0 0 8px rgba(0,191,255,.6), 0 0 16px rgba(0,191,255,.3);
-  
+  text-shadow: 0 0 8px rgba(0, 191, 255, .6), 0 0 16px rgba(0, 191, 255, .3);
+
   box-shadow:
     0 0 25px var(--glow),
-    0 0 50px rgba(0,191,255,.25),
-    inset 0 0 0 1px rgba(255,255,255,.1),
-    0 8px 0 rgba(0,0,0,.8),
-    0 12px 25px rgba(0,0,0,.6);
-    
+    0 0 50px rgba(0, 191, 255, .25),
+    inset 0 0 0 1px rgba(255, 255, 255, .1),
+    0 8px 0 rgba(0, 0, 0, .8),
+    0 12px 25px rgba(0, 0, 0, .6);
+
   transform: translateY(0);
   transition: all .12s ease;
   cursor: pointer;
 }
 
 #startBtn:hover {
-  --glow: rgba(0,191,255,.75);
-  
+  --glow: rgba(0, 191, 255, .75);
+
   box-shadow:
     0 0 35px var(--glow),
-    0 0 70px rgba(0,191,255,.35),
-    inset 0 0 0 1px rgba(255,255,255,.15),
-    0 12px 0 rgba(0,0,0,.8),
-    0 18px 35px rgba(0,0,0,.7);
-    
+    0 0 70px rgba(0, 191, 255, .35),
+    inset 0 0 0 1px rgba(255, 255, 255, .15),
+    0 12px 0 rgba(0, 0, 0, .8),
+    0 18px 35px rgba(0, 0, 0, .7);
+
   filter: saturate(1.3) brightness(1.1);
-  text-shadow: 0 0 12px rgba(0,191,255,.8), 0 0 24px rgba(0,191,255,.4);
+  text-shadow: 0 0 12px rgba(0, 191, 255, .8), 0 0 24px rgba(0, 191, 255, .4);
 }
 
 #startBtn:active {
   transform: translateY(4px);
-  
+
   box-shadow:
     0 0 20px var(--glow),
-    0 0 40px rgba(0,191,255,.3),
-    inset 0 0 0 1px rgba(255,255,255,.08),
-    0 4px 0 rgba(0,0,0,.9),
-    0 8px 15px rgba(0,0,0,.8);
+    0 0 40px rgba(0, 191, 255, .3),
+    inset 0 0 0 1px rgba(255, 255, 255, .08),
+    0 4px 0 rgba(0, 0, 0, .9),
+    0 8px 15px rgba(0, 0, 0, .8);
 }
 
 /* START butonuna özel parıltı animasyonu */
@@ -827,30 +970,38 @@ img {
   content: '';
   position: absolute;
   inset: -2px;
-  background: linear-gradient(45deg, 
-    transparent, 
-    rgba(0,191,255,.4), 
-    transparent, 
-    rgba(0,191,255,.4), 
-    transparent
-  );
+  background: linear-gradient(45deg,
+      transparent,
+      rgba(0, 191, 255, .4),
+      transparent,
+      rgba(0, 191, 255, .4),
+      transparent);
   border-radius: 14px;
   z-index: -1;
   animation: neonSweep 3s ease-in-out infinite;
 }
 
 @keyframes neonSweep {
-  0%, 100% { opacity: 0.3; transform: rotate(0deg); }
-  50% { opacity: 0.8; transform: rotate(180deg); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: rotate(180deg);
+  }
 }
 
 /* PRESS START yazısını da uyumlu yap */
 .press-start {
   color: #e8f7ff;
-  text-shadow: 
-    0 0 10px rgba(0,191,255,.6), 
-    0 0 20px rgba(0,191,255,.3),
-    0 0 30px rgba(0,191,255,.15);
+  text-shadow:
+    0 0 10px rgba(0, 191, 255, .6),
+    0 0 20px rgba(0, 191, 255, .3),
+    0 0 30px rgba(0, 191, 255, .15);
   animation: pressStartPulse 2s ease-in-out infinite;
 }
 
@@ -860,25 +1011,28 @@ img {
 }
 
 @keyframes pressStartPulse {
-  0%, 100% { 
-    text-shadow: 
-      0 0 10px rgba(0,191,255,.6), 
-      0 0 20px rgba(0,191,255,.3);
+
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(0, 191, 255, .6),
+      0 0 20px rgba(0, 191, 255, .3);
   }
-  50% { 
-    text-shadow: 
-      0 0 15px rgba(0,191,255,.8), 
-      0 0 30px rgba(0,191,255,.5),
-      0 0 45px rgba(0,191,255,.2);
+
+  50% {
+    text-shadow:
+      0 0 15px rgba(0, 191, 255, .8),
+      0 0 30px rgba(0, 191, 255, .5),
+      0 0 45px rgba(0, 191, 255, .2);
   }
 }
 
 .game-title {
   color: #e8f7ff;
-  text-shadow: 
-    0 0 12px rgba(0,191,255,.7), 
-    0 0 24px rgba(0,191,255,.4),
-    0 0 36px rgba(0,191,255,.2);
+  text-shadow:
+    0 0 12px rgba(0, 191, 255, .7),
+    0 0 24px rgba(0, 191, 255, .4),
+    0 0 36px rgba(0, 191, 255, .2);
   letter-spacing: 1px;
   margin-bottom: 20px;
 }
@@ -889,6 +1043,7 @@ img {
   overflow: auto;
   padding-right: 6px;
 }
+
 #startScreen .gb-panel {
   max-height: 80vh;
   overflow: auto;
@@ -900,7 +1055,7 @@ img {
   align-items: center;
 }
 
-.top-menu-icon{
+.top-menu-icon {
   width: 30px;
   height: 30px;
   object-fit: contain;
@@ -910,9 +1065,11 @@ img {
 #selectRowStart {
   align-items: center;
 }
+
 #selectRowStart label {
   margin-right: 8px;
 }
+
 #monsterSelectStart {
   flex: 1;
   padding: 8px;
@@ -923,13 +1080,13 @@ img {
 }
 
 .personal-answers-container {
-  display: none; 
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); 
+  background-color: rgba(0, 0, 0, 0.6);
   z-index: 9999;
   justify-content: center;
   align-items: center;
@@ -948,7 +1105,8 @@ img {
   max-width: 90%;
   padding: 20px;
   color: #fff;
-  font-family: 'Press Start 2P', monospace; /* pixel font */
+  font-family: 'Press Start 2P', monospace;
+  /* pixel font */
   text-align: center;
   animation: scaleIn 0.2s ease-out;
 }
@@ -974,7 +1132,7 @@ img {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  color:  #8aa6c7;
+  color: #8aa6c7;
   font-size: 11px;
   text-align: left;
 }
@@ -983,7 +1141,7 @@ img {
 .answers-container {
   max-height: 200px;
   overflow-y: auto;
-  
+
 }
 
 #closePersonalBtn {
@@ -1009,6 +1167,7 @@ img {
     transform: scale(0.8);
     opacity: 0;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -1034,6 +1193,7 @@ img {
   border-color: #00ffff;
   color: #000;
 }
+
 .monster-save:hover {
   background-color: #00cccc;
 }
@@ -1044,6 +1204,348 @@ img {
   color: #000;
   box-shadow: 0 0 8px #ff4b4b;
 }
+
 .monster-delete:hover {
   background-color: #ff1b1b;
+}
+
+/* Mobile için canvas'ı tamamen full screen yap */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    /* Scroll'u tamamen engelle */
+  }
+
+  #gameWrap {
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  #game {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    aspect-ratio: unset !important;
+    /* Kare oranını kaldır */
+    object-fit: cover;
+  }
+
+  /* Battle overlay'i de full screen yap */
+  .battle-overlay {
+    padding: 8px !important;
+    font-size: 12px !important;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* HUD'ı mobil için ayarla */
+  #hudWrap {
+    width: 100vw !important;
+    bottom: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #gameWrap {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #game {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    aspect-ratio: unset !important;
+  }
+
+  .battle-overlay {
+    padding: 4px !important;
+    font-size: 10px !important;
+    width: 100vw;
+    height: 100vh;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+
+  /* Landscape mode için de full screen */
+  #gameWrap {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  #game {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    aspect-ratio: unset !important;
+  }
+
+  .battle-overlay {
+    padding: 4px !important;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 100vw;
+    height: 100vh;
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* Mobile Portrait */
+  #gameWrap {
+    width: min(95vw, 900px);
+    /* Sabit boyut koru */
+    height: auto;
+    padding: 0;
+  }
+
+  #game {
+    width: min(95vw, 900px) !important;
+    /* Canvas boyutunu değiştirme */
+    height: auto !important;
+    aspect-ratio: 1/1;
+    /* Kare oranı koru */
+    max-height: 95vh;
+  }
+
+  /* Battle overlay'i küçült ama canvas'ı bozma */
+  .battle-overlay {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .battle-top-menu {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .battle-top-text-container {
+    padding: 4px 8px;
+  }
+
+  .pixel-btn {
+    min-height: 44px;
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  #battleAnswer {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Mobile Portrait Small */
+  #gameWrap {
+    width: min(98vw, 900px);
+    /* Biraz daha küçük ama yine sabit */
+  }
+
+  #game {
+    width: min(98vw, 900px) !important;
+  }
+
+  .battle-overlay {
+    font-size: 12px;
+  }
+
+  .battle-top-text-container {
+    padding: 2px 4px;
+  }
+
+  .top-menu-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+
+  /* Mobile Landscape */
+  #gameWrap {
+    width: min(90vh, 900px);
+    /* Landscape'de yüksekliğe göre ayarla */
+    height: 90vh;
+  }
+
+  #game {
+    width: min(90vh, 900px) !important;
+    height: min(90vh, 900px) !important;
+  }
+
+  .battle-overlay {
+    padding: 5px;
+    font-size: 12px;
+  }
+
+  .battle-top-menu {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #gameWrap {
+    width: min(90vw, 900px);
+    /* Tablet'te de sabit boyut */
+    height: auto;
+  }
+
+  #game {
+    width: min(90vw, 900px) !important;
+    height: auto !important;
+    aspect-ratio: 1/1;
+  }
+}
+
+/* Battle Overlay Responsive İyileştirmesi */
+@media (max-width: 768px) {
+  .battle-overlay {
+    padding: 8px !important;
+    font-size: 12px !important;
+  }
+
+  /* Top menu için */
+  .batlle-top-menu {
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .battle-top-player-menu,
+  .battle-top-monster-menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .battle-top-text-container {
+    min-width: 45%;
+    padding: 2px 4px !important;
+    margin: 1px;
+  }
+
+  .battle-top-text-container p {
+    font-size: 10px !important;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  /* Icons için */
+  .top-menu-icon {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  /* Question area */
+  .question-text {
+    font-size: 14px !important;
+    padding: 8px !important;
+    line-height: 1.3;
+  }
+
+  /* Input ve buttons */
+  #battleAnswer {
+    font-size: 14px !important;
+    padding: 8px !important;
+    min-height: 44px;
+  }
+
+  .pixel-btn {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    min-height: 40px;
+    margin: 2px;
+  }
+
+  /* Capture rate text */
+  .capture-rate {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Çok küçük ekranlar için */
+  .battle-overlay {
+    padding: 4px !important;
+    font-size: 10px !important;
+  }
+
+  .battle-top-text-container {
+    min-width: 48%;
+    padding: 1px 2px !important;
+  }
+
+  .battle-top-text-container p {
+    font-size: 9px !important;
+  }
+
+  .top-menu-icon {
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  .question-text {
+    font-size: 12px !important;
+    padding: 6px !important;
+  }
+
+  .pixel-btn {
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+    min-height: 36px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+
+  /* Landscape mode için */
+  .battle-overlay {
+    padding: 4px !important;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+
+  .batlle-top-menu {
+    flex-direction: row !important;
+    justify-content: space-between;
+  }
+
+  .battle-top-player-menu,
+  .battle-top-monster-menu {
+    width: 48%;
+  }
+
+  .question-text {
+    font-size: 12px !important;
+    padding: 4px !important;
+  }
+
+  .pixel-btn {
+    font-size: 9px !important;
+    padding: 3px 6px !important;
+    min-height: 32px;
+  }
 }

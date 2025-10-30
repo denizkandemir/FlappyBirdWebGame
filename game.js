@@ -15,6 +15,73 @@ questions = window.QUESTIONS;
   let answeredQuestionIds = [];
   let currentProfile = {}
 
+  function resizeCanvas() {
+    const canvas = document.getElementById("game");
+
+    if (window.innerWidth <= 768) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      W = canvas.width;
+      H = canvas.height;
+
+      world.groundY = H - 80;
+
+      if (window.innerWidth <= 480) {
+        bird.x = W * 0.15; 
+      } else {
+        bird.x = W * 0.2; 
+      }
+
+      // Bird pozisyonunu ayarla
+      if (bird.y > world.groundY - S.birdR) {
+        bird.y = world.groundY - S.birdR;
+      }
+    } else {
+      canvas.width = 900;
+      canvas.height = 900;
+      W = canvas.width;
+      H = canvas.height;
+      world.groundY = H - 80;
+      bird.x = 220; 
+    }
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 100);
+  });
+
+  document.addEventListener('DOMContentLoaded', resizeCanvas);
+
+
+  let touchStartY = 0;
+  let touchEndY = 0;
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchStartY = e.touches[0].clientY;
+    handlePressDown();
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    touchEndY = e.changedTouches[0].clientY;
+    handlePressUp();
+  }, { passive: false });
+
+  let lastTouchEnd = 0;
+  canvas.addEventListener('touchend', (e) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
   const sendBtnStart = document.getElementById("sendBtnStart");
@@ -58,7 +125,7 @@ questions = window.QUESTIONS;
   let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false, mon: null };
 
   window.addEventListener("af:login:done", () => {
-     let displayName = activeUnit.name;
+    let displayName = activeUnit.name;
     if (!displayName || displayName === "Error Display Name" || displayName === "Error Reset Game" || displayName === "") {
       try {
         let currentProfile = null;
@@ -476,9 +543,22 @@ questions = window.QUESTIONS;
 
   // ---------- Pipes & neon edges ----------
   function spawnPipe(x) {
-    const margin = 120;
-    const gapY = randRange(margin, world.groundY - margin - S.pipeGap);
-    pipes.push({ x, w: S.pipeW, gapY, gapH: S.pipeGap, passed: false });
+    const scale = getScaleFactor();
+    const margin = 120 * scale;
+    const gapSize = (S.pipeGap || 200) * scale;
+
+    const pipeWidth = 80 * scale;
+    const gapY = margin + Math.random() * (H - 2 * margin - gapSize);
+
+    pipes.push({
+      x: x,
+      y: 0,
+      w: pipeWidth,
+      h: H,
+      gapY: gapY,
+      gapH: gapSize,
+      passed: false
+    });
   }
   function drawPipe(p) {
     const x = p.x,
@@ -861,8 +941,18 @@ questions = window.QUESTIONS;
 
   function positionBattleOverlay() {
     const dialogH = dialogTurn.getBoundingClientRect().height;
+
+    if (window.innerWidth <= 768) {
+      battleToi.style.bottom = "10px";
+      battleToi.style.left = "10px";
+      battleToi.style.right = "10px";
+      battleToi.style.position = "fixed";
+    } else {
+      battleToi.style.bottom = 18 + dialogH + 8 + "px";
+      battleToi.style.position = "absolute";
+    }
+
     battleToi.classList.remove("hidden");
-    battleToi.style.bottom = 18 + dialogH + 8 + "px";
   }
   window.addEventListener("resize", () => {
     if (state === "battle") positionBattleOverlay();
@@ -967,30 +1057,37 @@ questions = window.QUESTIONS;
       sendBtnOver.classList.toggle("ghost", !on);
     }
   }
+
+  function getScaleFactor() {
+    if (window.innerWidth <= 480) return 0.7;
+    if (window.innerWidth <= 768) return 0.8;
+    if (window.innerWidth <= 1024) return 0.9;
+    return 1.0;
+  }
+
   function startWithMonster(id) {
     resetGame();
 
-    // monsters dizisinden objeyi bul
     const monsterObj = availableMonsters.find(m => m.id === id);
     if (!monsterObj) return;
 
-     let playerName = "";
-  try {
-    if (window.profile) {
-      playerName = window.profile.firstName || window.profile.fullName || "error";
-    } else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
-      const profile = window.AF_SaveManager.profile;
-      playerName = profile.firstName || profile.fullName || "error";
-    } else {
-      const profile = JSON.parse(localStorage.getItem("__profile__") || "{}");
-      playerName = profile.firstName || profile.fullName || "error";
-      if (profile.firstName) {
-        playerName = profile.firstName;
+    let playerName = "";
+    try {
+      if (window.profile) {
+        playerName = window.profile.firstName || window.profile.fullName || "error";
+      } else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
+        const profile = window.AF_SaveManager.profile;
+        playerName = profile.firstName || profile.fullName || "error";
+      } else {
+        const profile = JSON.parse(localStorage.getItem("__profile__") || "{}");
+        playerName = profile.firstName || profile.fullName || "error";
+        if (profile.firstName) {
+          playerName = profile.firstName;
+        }
       }
+    } catch (e) {
+      playerName = "error fetching name";
     }
-  } catch (e) {
-    playerName = "error fetching name";
-  }
 
 
     // Monster objesini kullan
@@ -1487,9 +1584,6 @@ questions = window.QUESTIONS;
         Number(localStorage.getItem("angryflappy_bestscore") || 0)
       );
     } catch (e) { }
-
-    const personalBtn = document.getElementById("personalAnswerBtn");
-    personalBtn.addEventListener("click", openPersonalAnswers);
 
     // If we lost WITHOUT a monster, display ball-loss overlay first
     try {
