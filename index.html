@@ -54,29 +54,29 @@
           </div>
           <div class="battle-top-text-container">
             <p class="player-power top-menu-p"> Lvl : </p>
-            <p class="player-power top-menu-p" id="playerPower"></p>
+            <div class="player-power top-menu-p" id="playerPower"></div>
           </div>
           <div class="battle-top-text-container">
             <p class="player-hp top-menu-p"> HP : </p>
-            <p class="player-hp top-menu-p" id="playerHp"></p>
+            <div class="player-hp top-menu-p" id="playerHp"></div>
           </div>
           <div class="battle-top-text-container">
             <p class="player-name top-menu-p"> Balls : </p>
-            <div class="player-name top-menu-p" id="playerBalls"></div>
+            <div class="player-name ball-menu top-menu-p" id="playerBalls"></div>
           </div>
         </div>
         <div class="battle-top-player-menu">
           <div class="battle-top-text-container">
-            <p class="monster-name top-menu-p">  </p>
+            <p class="monster-name top-menu-p"> Monster Name : </p>
             <p class="monster-name top-menu-p" id="monsterName"></p>
           </div>
           <div class="battle-top-text-container">
             <p class="monster-power top-menu-p"> Lvl : </p>
-            <p class="monster-power top-menu-p" id="monsterPower"></p>
+            <div class="monster-power top-menu-p" id="monsterPower"></div>
           </div>
           <div class="battle-top-text-container">
             <p class="monster-hp top-menu-p"> HP : </p>
-            <p class="monster-hp top-menu-p" id="monsterHp"></p>
+            <div class="monster-hp top-menu-p" id="monsterHp"></div>
           </div>
           <div class="battle-top-text-container">
             <p class="monster-capture top-menu-p"> Capture Rate : </p>
@@ -106,12 +106,13 @@
         style="width:min(320px,60vw);image-rendering:pixelated;transform:translateY(-120%);filter:drop-shadow(0 12px 0 rgba(0,0,0,.3))" />
       <audio id="bootSound" preload="auto"></audio>
     </div>
-    <div class="overlay synth-bg" id="startScreen">
-      <div class="panel gb-panel">
-        <div style="display:flex;justify-content:center;margin:10px 0 16px"><img alt="Title" class="logo-title"
-            src="assets/antiacor_gameboy.png" /></div>
+    <div class="overlay startScreen synth-bg" id="startScreen">
+      <div class="panel startScreen gb-panel">
+        <div style="display:flex;justify-content:center;margin:10px 0 16px">
+          <p class="game-title"> Monster Quiz Battle: Sky Hunter </p>
+        </div>
         <div class="press-start blink">PRESS START</div>
-        <div class="row center">
+        <div class="row startScreen center">
           <button class="btn gb-btn" id="startBtn">START</button>
         </div>
       </div>

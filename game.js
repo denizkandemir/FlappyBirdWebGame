@@ -75,8 +75,8 @@ questions = window.QUESTIONS;
 
         console.log("Profile found:", currentProfile);
 
-        if (currentProfile && currentProfile.fullName) {
-          displayName = currentProfile.fullName;
+        if (currentProfile && currentProfile.firstName) {
+          displayName = currentProfile.firstName;
         } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
           displayName = currentProfile.firstName + " " + currentProfile.lastName;
         } else if (currentProfile && currentProfile.firstName) {
@@ -746,8 +746,8 @@ questions = window.QUESTIONS;
 
         console.log("Profile found:", currentProfile);
 
-        if (currentProfile && currentProfile.fullName) {
-          displayName = currentProfile.fullName;
+        if (currentProfile && currentProfile.firstName) {
+          displayName = currentProfile.firstName;
         } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
           displayName = currentProfile.firstName + " " + currentProfile.lastName;
         } else if (currentProfile && currentProfile.firstName) {
@@ -765,11 +765,11 @@ questions = window.QUESTIONS;
     captureRateP.textContent = `${captureRate} % `;
     monName.textContent = mon.name || "Error Fill Menu Details";
     const monsterHpVal = (battle && battle.hp != null ? battle.hp : mon.maxhp);
-    monHp.textContent = "❤️".repeat(Math.round(monsterHpVal));
-    monPowerEl.textContent = "⚡".repeat(mon.power || 1);
+    monHp.innerHTML = `<img class="top-menu-icon" src="assets/pixelHeart.png" alt="Heart Icon">`.repeat(Math.round(monsterHpVal));
+    monPowerEl.innerHTML = `<img class="top-menu-icon" src="assets/pixelPower.png" alt="Power Icon">`.repeat(mon.power || 1);
     captureBtn.textContent = "Capture ( " + `${captureRate} % ` + ")"
-    playerHp.textContent = "❤️".repeat(Math.round(lives));
-    playerPowerEl.textContent = "⚡".repeat(activeUnit.power);
+    playerHp.innerHTML = `<img class="top-menu-icon" src="assets/pixelHeart.png" alt="Heart Icon">`.repeat(Math.round(lives));
+    playerPowerEl.innerHTML = `<img class="top-menu-icon" src="assets/pixelPower.png" alt="Power Icon">`.repeat(activeUnit.power);
     playerName.textContent = displayName;
     const playerBalls = document.getElementById("playerBalls");
     if (playerBalls) {
@@ -806,8 +806,6 @@ questions = window.QUESTIONS;
     captureBtn.disabled = !(battle.hp <= 0 && balls > 0);
   }
   function showFleeAndEnd(consumedLife) {
-    anim.monsterLungeT = performance.now() + 220;
-    if (battle) battle.fleeBannerUntil = performance.now() + 500;
     if (consumedLife) {
       if (lives > 0.5) {
         lives = roundToHalf(lives - 0.5);
@@ -815,7 +813,6 @@ questions = window.QUESTIONS;
         lives = 0.5;
       }
       updateHUD();
-      battleToi.innerHTML = toiPanelHTML();
     }
     setTimeout(() => {
       endBattle(false);
@@ -977,10 +974,29 @@ questions = window.QUESTIONS;
     const monsterObj = availableMonsters.find(m => m.id === id);
     if (!monsterObj) return;
 
+     let playerName = "";
+  try {
+    if (window.profile) {
+      playerName = window.profile.firstName || window.profile.fullName || "error";
+    } else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
+      const profile = window.AF_SaveManager.profile;
+      playerName = profile.firstName || profile.fullName || "error";
+    } else {
+      const profile = JSON.parse(localStorage.getItem("__profile__") || "{}");
+      playerName = profile.firstName || profile.fullName || "error";
+      if (profile.firstName) {
+        playerName = profile.firstName;
+      }
+    }
+  } catch (e) {
+    playerName = "error fetching name";
+  }
+
+
     // Monster objesini kullan
     const mon = {
       id: monsterObj.id,
-      name: monsterObj.name,
+      name: playerName,
       category: monsterObj.category,
       form: monsterObj.form,
       color: monsterObj.color,
@@ -1050,18 +1066,12 @@ questions = window.QUESTIONS;
   }
 
   // ---------- Damage & capture ----------
-  function randHalfUpTo(maxPow) {
-    const steps = Math.floor(maxPow * 2) + 1;
-    const k = Math.floor(rng() * steps);
-    return k * 0.5;
-  }
+
   function dmgReceivedFrom(powerEnemy) {
     const pick = randHalfUpTo(powerEnemy);
     const raw = pick / 2;
     return roundToHalf(raw);
   }
-
-
 
   // ---------- Game reset / HUD ----------
   function resetGame() {
@@ -1092,8 +1102,8 @@ questions = window.QUESTIONS;
 
         console.log("Profile found:", currentProfile);
 
-        if (currentProfile && currentProfile.fullName) {
-          displayName = currentProfile.fullName;
+        if (currentProfile && currentProfile.firstName) {
+          displayName = currentProfile.firstName;
         } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
           displayName = currentProfile.firstName + " " + currentProfile.lastName;
         } else if (currentProfile && currentProfile.firstName) {
@@ -1181,20 +1191,6 @@ questions = window.QUESTIONS;
     ctx.restore();
   }
 
-  function playerSafeOnTopOfPipe() {
-    // Extended safe zone on the TOP of bottom pipe so walking near edges doesn't trigger side-hit
-    const padX = S.birdR + 14; // horizontal forgiveness beyond pipe edges
-    const padYTop = 24; // vertical forgiveness above top surface
-    for (let p of pipes) {
-      const topY = p.gapY + p.gapH;
-      const withinX = bird.x > p.x - padX && bird.x < p.x + p.w + padX;
-      const feetY = bird.y + S.birdR;
-      if (withinX && feetY >= topY - 8 && feetY <= topY + padYTop) {
-        return true;
-      }
-    }
-    return false;
-  }
   function collidesWithPipe() {
     const OVERHANG = 16;
     const TOP_BAND = 22;
@@ -1450,32 +1446,6 @@ questions = window.QUESTIONS;
       triggerGameOver();
     }
     updateHUD();
-  }
-
-  function renderPersonalAnswers() {
-    const questionsContainer = document.getElementById("questionsContainer");
-    const answersContainer = document.getElementById("answersContainer");
-    questionsContainer.innerHTML = "";
-    answersContainer.innerHTML = "";
-    answerList.map((answer) => {
-      const questionP = document.createElement("p");
-      questionP.textContent = answer.question;
-      questionP.classList.add("personal-answer-p");
-      const answerP = document.createElement("p");
-      answerP.textContent = answer.answer;
-      answerP.classList.add("personal-answer-p");
-
-      questionsContainer.appendChild(questionP);
-      answersContainer.appendChild(answerP);
-    });
-    const closeBtn = document.getElementById("closePersonalBtn");
-    closeBtn.addEventListener("click", openPersonalAnswers);
-  }
-
-  function openPersonalAnswers() {
-    const container = document.getElementById("personalAnswersContainer");
-    container.classList.toggle("show");
-    renderPersonalAnswers();
   }
 
   function triggerGameOver() {
@@ -1864,7 +1834,7 @@ questions = window.QUESTIONS;
       ctx.save();
       ctx.font = "48px monospace";
       ctx.fillStyle = "#ffffff";
-      const text = "FUITE";
+      const text = "ESCAPED";
       const m = ctx.measureText(text);
       const x = (W - m.width) / 2, y = H * 0.18;
       ctx.lineWidth = 6;
@@ -2180,32 +2150,21 @@ function playBootChime() {
   }
 }
 
-function runSplash() {
-  if (!splash) return;
-  splashLogo.style.transition = "transform 1800ms cubic-bezier(.18,.9,.18,1.1)";
-  requestAnimationFrame(() => {
-    splashLogo.style.transform = "translateY(0)";
-  });
-  setTimeout(() => {
-    playBootChime();
-    // Hide splash, show start screen
-    splash.classList.remove("show");
-    splash.style.display = "none";
-    startScreen.classList.add("show");
-    try {
-      if (dexStart) renderCollectionPaged(dexStart);
-    } catch (e) { }
-    try {
-      const selStart = document.getElementById("monsterSelectStart");
-      if (selStart) updateMonsterSelect(selStart);
-    } catch (e) { }
-  }, 3000);
-}
-// Hide start at first, splash visible
 if (startScreen) {
-  startScreen.classList.remove("show");
+  startScreen.classList.add("show");
 }
-runSplash();
+if (splash) {
+  splash.style.display = "none";
+}
+
+try {
+  if (dexStart) renderCollectionPaged(dexStart);
+} catch (e) { }
+try {
+  const selStart = document.getElementById("monsterSelectStart");
+  if (selStart) updateMonsterSelect(selStart);
+} catch (e) { }
+
 if (ballLossOk) {
   ballLossOk.addEventListener("click", () => {
     if (ballLossEl) ballLossEl.classList.remove("show");
