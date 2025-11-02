@@ -9,78 +9,13 @@ questions = window.QUESTIONS;
   const ctx = canvas.getContext("2d");
 
   let W = canvas.width,
-    H = canvas.height;
+  H = canvas.height;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
   let answeredQuestionIds = [];
   let currentProfile = {}
 
-  function resizeCanvas() {
-    const canvas = document.getElementById("game");
-
-    if (window.innerWidth <= 768) {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      W = canvas.width;
-      H = canvas.height;
-
-      world.groundY = H - 80;
-
-      if (window.innerWidth <= 480) {
-        bird.x = W * 0.15; 
-      } else {
-        bird.x = W * 0.2; 
-      }
-
-      // Bird pozisyonunu ayarla
-      if (bird.y > world.groundY - S.birdR) {
-        bird.y = world.groundY - S.birdR;
-      }
-    } else {
-      canvas.width = 900;
-      canvas.height = 900;
-      W = canvas.width;
-      H = canvas.height;
-      world.groundY = H - 80;
-      bird.x = 220; 
-    }
-  }
-
-  window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('orientationchange', () => {
-    setTimeout(resizeCanvas, 100);
-  });
-
-  document.addEventListener('DOMContentLoaded', resizeCanvas);
-
-
-  let touchStartY = 0;
-  let touchEndY = 0;
-
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    touchStartY = e.touches[0].clientY;
-    handlePressDown();
-  }, { passive: false });
-
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    touchEndY = e.changedTouches[0].clientY;
-    handlePressUp();
-  }, { passive: false });
-
-  let lastTouchEnd = 0;
-  canvas.addEventListener('touchend', (e) => {
-    const now = (new Date()).getTime();
-    if (now - lastTouchEnd <= 300) {
-      e.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, false);
+  
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -396,8 +331,15 @@ questions = window.QUESTIONS;
   }
 
   // Entities
+
+  let checkSize = false;
+  if(window.innerWidth <= 480) { 
+    checkSize = true;
+    console.log("480");
+  }
+
   const bird = {
-    x: 220,
+    x: checkSize ? W * 0.05 : W * 0.1,
     y: H / 2,
     vy: 0,
     r: S.birdR,
@@ -448,6 +390,72 @@ questions = window.QUESTIONS;
     fastFallTimer: 0,
     holdStart: 0,
   };
+
+  function resizeCanvas() {
+    if (window.innerWidth <= 768) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      W = canvas.width;
+      H = canvas.height;
+
+      world.groundY = H - 80;
+
+      if (window.innerWidth <= 480) {
+        bird.x = W * 0.05;
+        console.log("480")
+
+      } else {
+        bird.x = W * 0.15;
+      }
+
+      if (bird.y > world.groundY - S.birdR) {
+        bird.y = world.groundY - S.birdR;
+      }
+    } else {
+      canvas.width = 900;
+      canvas.height = 900;
+      W = canvas.width;
+      H = canvas.height;
+      world.groundY = H - 80;
+      bird.x = 220;
+    }
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 100);
+  });
+
+  document.addEventListener('DOMContentLoaded', resizeCanvas);
+
+
+  let touchStartY = 0;
+  let touchEndY = 0;
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchStartY = e.touches[0].clientY;
+    handlePressDown();
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    touchEndY = e.changedTouches[0].clientY;
+    handlePressUp();
+  }, { passive: false });
+
+  let lastTouchEnd = 0;
+  canvas.addEventListener('touchend', (e) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
 
   // ---------- Helpers for half-hearts & RNG ----------
   function roundToHalf(v) {
@@ -1072,6 +1080,15 @@ questions = window.QUESTIONS;
     if (!monsterObj) return;
 
     let playerName = "";
+
+    if (window.innerWidth <= 480) {
+      bird.x = W * 0.1; 
+      console.log("480")
+    } else if (window.innerWidth <= 768) {
+      bird.x = W * 0.15; 
+    } else {
+      bird.x = 220; 
+    }
     try {
       if (window.profile) {
         playerName = window.profile.firstName || window.profile.fullName || "error";
@@ -1131,7 +1148,13 @@ questions = window.QUESTIONS;
     updateHUD();
     startScreen.classList.remove("show");
     gameOverEl.classList.remove("show");
-    bird.x = 220;
+     if (window.innerWidth <= 480) {
+      bird.x = W * 0.1;
+    } else if (window.innerWidth <= 768) {
+      bird.x = W * 0.15;
+    } else {
+      bird.x = 220;
+    }
     bird.vy = 0;
     bird.tilt = 0;
     bird.invulnUntil = 0;
@@ -1164,6 +1187,12 @@ questions = window.QUESTIONS;
 
   // ---------- Damage & capture ----------
 
+  function randHalfUpTo(maxPow) {
+    const steps = Math.floor(maxPow * 2) + 1;
+    const k = Math.floor(rng() * steps);
+    return k * 0.5;
+  }
+
   function dmgReceivedFrom(powerEnemy) {
     const pick = randHalfUpTo(powerEnemy);
     const raw = pick / 2;
@@ -1181,6 +1210,16 @@ questions = window.QUESTIONS;
       control.glide = control.glideMax = 1.0;
       control.hold = false;
     }
+
+    if (window.innerWidth <= 480) {
+      bird.x = W * 0.1;
+    } else if (window.innerWidth <= 768) {
+      bird.x = W * 0.15;
+    } else {
+      bird.x = 220;
+    }
+
+    bird.y = H / 2;
 
     let displayName = activeUnit.name;
     if (!displayName || displayName === "Error Display Name" || displayName === "Error Reset Game" || displayName === "") {
@@ -1227,7 +1266,15 @@ questions = window.QUESTIONS;
     runMaxLives = activeUnit.hpMax;
     runPower = activeUnit.power;
     updateHUD();
-    bird.x = 220;
+
+    if (window.innerWidth <= 480) {
+      bird.x = W * 0.1;
+    } else if (window.innerWidth <= 768) {
+      bird.x = W * 0.15;
+    } else {
+      bird.x = 220;
+    }
+
     bird.y = H / 2;
     bird.vy = 0;
     bird.tilt = 0;
@@ -1878,7 +1925,7 @@ questions = window.QUESTIONS;
           anim.capture.t0 = now;
         }
       } else if (anim.capture.phase === "result") {
-        const text = anim.capture.success ? "CATCH" : "RATÊ";
+        const text = anim.capture.success ? "Capture Successful" : "Capture Failed";
         ctx.save();
         ctx.font = "48px monospace";
         ctx.fillStyle = "#ffffff";
@@ -1892,7 +1939,6 @@ questions = window.QUESTIONS;
         ctx.restore();
         if (now - anim.capture.t0 > 650) {
           if (anim.capture.success) {
-            // Success: add to collection, bump counters, then end
             const id = battle.mon.id;
             if (!collection.includes(id)) {
               collection.push(id);
@@ -1938,7 +1984,6 @@ questions = window.QUESTIONS;
       ctx.restore();
     }
 
-    // Disable input in DOM during capture animation
     if (anim.capture && anim.capture.active) {
       answerBtn.disabled = true;
       fleeBtn.disabled = true;
@@ -1964,9 +2009,7 @@ questions = window.QUESTIONS;
       return String(s).toLowerCase().replace(/\s+/g, "");
     }
 
-    // Sadece doğru/yanlış kontrolü - personal question ayrımı yok
     if (qObj && normalize(userAnswer) === normalize(qObj.answer)) {
-      // Doğru cevap
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
@@ -2022,13 +2065,10 @@ questions = window.QUESTIONS;
     balls -= 1;
     saveBalls();
     updateHUD();
-    battleToi.innerHTML = toiPanelHTML();
 
-    // --- Capture rate hesapla ---
     const captureRate = getCaptureRate(battle.mon, battle.hp, activeUnit.power);
-    const success = Math.random() * 100 < captureRate; // %captureRate şans
+    const success = Math.random() * 100 < captureRate;
 
-    // Capture animasyonu başlat
     const pos = getBattlePositions();
     anim.capture.active = true;
     anim.capture.phase = "fly";
@@ -2039,7 +2079,7 @@ questions = window.QUESTIONS;
     anim.capture.fromY = pos.playerScreenY - 30;
     anim.capture.toX = pos.enemyBaseX - 10;
     anim.capture.toY = pos.enemyBaseY - 10;
-    captureHint.textContent = `Tentative… (${captureRate}%)`;
+    captureHint.textContent = `(${captureRate}%)`;
 
     setTimeout(() => {
       if (battle && battle.mon) {
