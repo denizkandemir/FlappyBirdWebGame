@@ -401,9 +401,7 @@ questions = window.QUESTIONS;
       world.groundY = H - 80;
 
       if (window.innerWidth <= 480) {
-        bird.x = W * 0.05;
-        console.log("480")
-
+        bird.x = W * 0.13;
       } else {
         bird.x = W * 0.15;
       }
@@ -1082,8 +1080,7 @@ questions = window.QUESTIONS;
     let playerName = "";
 
     if (window.innerWidth <= 480) {
-      bird.x = W * 0.1; 
-      console.log("480")
+      bird.x = W * 0.13; 
     } else if (window.innerWidth <= 768) {
       bird.x = W * 0.15; 
     } else {
@@ -1149,7 +1146,7 @@ questions = window.QUESTIONS;
     startScreen.classList.remove("show");
     gameOverEl.classList.remove("show");
      if (window.innerWidth <= 480) {
-      bird.x = W * 0.1;
+      bird.x = W * 0.13;
     } else if (window.innerWidth <= 768) {
       bird.x = W * 0.15;
     } else {
@@ -1212,7 +1209,7 @@ questions = window.QUESTIONS;
     }
 
     if (window.innerWidth <= 480) {
-      bird.x = W * 0.1;
+      bird.x = W * 0.13;
     } else if (window.innerWidth <= 768) {
       bird.x = W * 0.15;
     } else {
@@ -1268,7 +1265,7 @@ questions = window.QUESTIONS;
     updateHUD();
 
     if (window.innerWidth <= 480) {
-      bird.x = W * 0.1;
+      bird.x = W * 0.13;
     } else if (window.innerWidth <= 768) {
       bird.x = W * 0.15;
     } else {

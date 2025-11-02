@@ -226,12 +226,12 @@ select {
 
 #gameWrap {
   position: relative;
-  width: min(95vw, 900px);
+  width: min(100vw, 900px);
 }
 
 #game {
   display: block;
-  width: min(95vw, 900px);
+  width: min(100vw, 900px);
   height: auto;
   max-height: 95vh;
   aspect-ratio: 1/1;
@@ -681,7 +681,6 @@ select {
 
 .top-menu-p {
   margin: 0;
-  padding: 5px;
 }
 
 .ballIcon {
@@ -1309,22 +1308,18 @@ img {
 
   /* Mobile Portrait */
   #gameWrap {
-    width: min(95vw, 900px);
-    /* Sabit boyut koru */
+    width: min(100vw, 900px);
     height: auto;
     padding: 0;
   }
 
   #game {
-    width: min(95vw, 900px) !important;
-    /* Canvas boyutunu değiştirme */
+    width: min(100vw, 900px) !important;
     height: auto !important;
     aspect-ratio: 1/1;
-    /* Kare oranı koru */
     max-height: 95vh;
   }
 
-  /* Battle overlay'i küçült ama canvas'ı bozma */
   .battle-overlay {
     padding: 10px;
     font-size: 14px;
@@ -1434,10 +1429,11 @@ img {
   .battle-top-player-menu,
   .battle-top-monster-menu {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
+    width: 100%;
+    gap: 0px;
   }
 
   .battle-top-text-container {
@@ -1495,7 +1491,7 @@ img {
 
   .battle-top-text-container {
     min-width: 48%;
-    padding: 1px 2px !important;
+    padding: 2px 2px !important;
   }
 
   .battle-top-text-container p {
