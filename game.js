@@ -9,13 +9,13 @@ questions = window.QUESTIONS;
   const ctx = canvas.getContext("2d");
 
   let W = canvas.width,
-  H = canvas.height;
+    H = canvas.height;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
   let answeredQuestionIds = [];
   let currentProfile = {}
 
-  
+
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -23,9 +23,7 @@ questions = window.QUESTIONS;
   const gameOverEl = document.getElementById("gameOver");
   const sendBtnOver = document.getElementById("sendBtnOver");
   const finalScore = document.getElementById("finalScore");
-  const ballLossEl = document.getElementById("ballLoss");
-  const ballLossMsg = document.getElementById("ballLossMsg");
-  const ballLossOk = document.getElementById("ballLossOk");
+
   const bestScore = document.getElementById("bestScore");
   const corruptOverlay = document.getElementById("corruptOverlay");
   const corruptTitle = document.getElementById("corruptTitle");
@@ -105,7 +103,7 @@ questions = window.QUESTIONS;
     speed: 240,
     birdR: 16.5,
     invulnMs: 1200,
-    spawnEverySec: [4, 7],
+    spawnEverySec: [2, 5],
     monsterBaseSpeed: 90,
     groundSpeed: 140,
     hopCooldown: [0.8, 1.7],
@@ -264,25 +262,6 @@ questions = window.QUESTIONS;
   // World
   const world = { groundY: H - 80, scrollX: 0, stars: null, buildings: null };
 
-  // Monster taxonomy
-  const Categories = ["Volant", "Sol", "Plafond"];
-  const Forms = {
-    Volant: ["Aileron", "Pico", "Spectra", "Raptix", "Zigzag", "Fumee"],
-    Sol: ["Blobu", "Crabbo", "Rochet", "Taupin", "Impix", "Herizo"],
-    Plafond: ["Araxo", "Goutte", "Stalax", "Chauvi", "Camelo", "Pendu"],
-  };
-  const Colors = [
-    { name: "Rouge", c: "#ef4444" },
-    { name: "Azur", c: "#3b82f6" },
-    { name: "Jade", c: "#10b981" },
-    { name: "Or", c: "#f59e0b" },
-    { name: "Violet", c: "#8b5cf6" },
-    { name: "Ombre", c: "#374151" },
-    { name: "Neige", c: "#e5e7eb" },
-    { name: "Cuivre", c: "#b45309" },
-    { name: "Rose", c: "#ec4899" },
-    { name: "Cyan", c: "#06b6d4" },
-  ];
   function deaccent(s) {
     return s.normalize("NFD").replace(/\p{Diacritic}/gu, "");
   }
@@ -333,7 +312,7 @@ questions = window.QUESTIONS;
   // Entities
 
   let checkSize = false;
-  if(window.innerWidth <= 480) { 
+  if (window.innerWidth <= 480) {
     checkSize = true;
     console.log("480");
   }
@@ -704,6 +683,8 @@ questions = window.QUESTIONS;
     drawNeonBall(it.x, it.y, 14);
   }
 
+  const Categories = ["Flying", "Earth", "Ceiling"];
+
   // ---------- Monsters ----------
   function createMonsterCandidate() {
     const candidates = availableMonsters.filter(m => !collidedMonsterIds.includes(m.id));
@@ -715,9 +696,9 @@ questions = window.QUESTIONS;
 
     let x = W + 50;
     let y;
-    if (m.category === "Sol") {
+    if (m.category === "Earth") {
       y = world.groundY - 24;
-    } else if (m.category === "Plafond") {
+    } else if (m.category === "Ceiling") {
       y = 24;
     } else {
       y = randRange(80, world.groundY - 200);
@@ -1017,7 +998,6 @@ questions = window.QUESTIONS;
   }
   function onKeyDown(e) {
     if (e.code === "Space") {
-      e.preventDefault();
       handlePressDown();
     }
   }
@@ -1027,7 +1007,6 @@ questions = window.QUESTIONS;
   }
   function onKeyUp(e) {
     if (e.code === "Space") {
-      e.preventDefault();
       handlePressUp();
     }
   }
@@ -1080,11 +1059,11 @@ questions = window.QUESTIONS;
     let playerName = "";
 
     if (window.innerWidth <= 480) {
-      bird.x = W * 0.13; 
+      bird.x = W * 0.13;
     } else if (window.innerWidth <= 768) {
-      bird.x = W * 0.15; 
+      bird.x = W * 0.15;
     } else {
-      bird.x = 220; 
+      bird.x = 220;
     }
     try {
       if (window.profile) {
@@ -1107,7 +1086,7 @@ questions = window.QUESTIONS;
     // Monster objesini kullan
     const mon = {
       id: monsterObj.id,
-      name: playerName,
+      name: monsterObj.name,
       category: monsterObj.category,
       form: monsterObj.form,
       color: monsterObj.color,
@@ -1119,7 +1098,6 @@ questions = window.QUESTIONS;
       power: monsterObj.stats?.power ?? playerPower,
     };
 
-    // Aktif karakteri seçilen monster olarak ayarla
     activeUnit = {
       name: mon.name,
       hpMax: mon.maxhp,
@@ -1145,7 +1123,7 @@ questions = window.QUESTIONS;
     updateHUD();
     startScreen.classList.remove("show");
     gameOverEl.classList.remove("show");
-     if (window.innerWidth <= 480) {
+    if (window.innerWidth <= 480) {
       bird.x = W * 0.13;
     } else if (window.innerWidth <= 768) {
       bird.x = W * 0.15;
@@ -1445,11 +1423,11 @@ questions = window.QUESTIONS;
     }
     for (let m of monsters) {
       const cat = Categories[m.catIdx];
-      if (cat === "Volant") {
+      if (cat === "Flying") {
         m.x -= S.speed * 0.58 * dt;
         m.wob += (0.8 + rng() * 0.6) * dt;
         m.y += Math.sin(m.wob * 2.2) * 20 * dt + (rng() - 0.5) * 12 * dt;
-      } else if (cat === "Sol") {
+      } else if (cat === "Earth") {
         if ((!m.hopCd || m.hopCd <= 0) && m.vy === 0) {
           m.vy = S.hopVy;
           m.hopCd = randRange(S.hopCooldown[0], S.hopCooldown[1]);
@@ -1656,6 +1634,7 @@ questions = window.QUESTIONS;
     }
     const level = (mon.maxhp || 0) + (mon.power || 0);
     const cost = level;
+
     corruptTitle.textContent = `${mon.name} is corrupted`;
     corruptVisual.innerHTML = "";
     if (trashBtn) trashBtn.style.display = "";
@@ -2038,7 +2017,6 @@ questions = window.QUESTIONS;
     }
 
     updateHUD();
-    battleToi.innerHTML = toiPanelHTML();
   });
 
   fleeBtn.addEventListener("click", () => {
@@ -2127,14 +2105,12 @@ questions = window.QUESTIONS;
     if (lives - dmg < 0.5) {
       lives = 0.5;
       updateHUD();
-      battleToi.innerHTML = toiPanelHTML();
       ++lostBattlesRun;
       showFleeAndEnd(false);
       return;
     }
     lives = Math.max(0.5, roundToHalf(lives - dmg));
     updateHUD();
-    battleToi.innerHTML = toiPanelHTML();
   }
 
   // ---------- Collection rendering ----------
@@ -2183,16 +2159,12 @@ questions = window.QUESTIONS;
         return;
       }
       for (const e of arr) {
-        const col = Colors[e.k].c;
-        console.log(e);
         const mon = {
           id: e.id,
           name: e.name,
           catIdx: e.c,
           formIdx: e.f,
           colorIdx: e.k,
-          eyes: eyeCountFor(e.id),
-          color: col,
           r: 18,
           maxhp: e.hp,
           power: e.power,
@@ -2295,6 +2267,10 @@ try {
   const selStart = document.getElementById("monsterSelectStart");
   if (selStart) updateMonsterSelect(selStart);
 } catch (e) { }
+
+const ballLossEl = document.getElementById("ballLoss");
+const ballLossMsg = document.getElementById("ballLossMsg");
+const ballLossOk = document.getElementById("ballLossOk");
 
 if (ballLossOk) {
   ballLossOk.addEventListener("click", () => {

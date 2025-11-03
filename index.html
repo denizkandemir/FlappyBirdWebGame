@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Angry Flappy: Monsters & Quiz Battles</title>
+  <title>Monster Quiz Battle : Sky Hunter</title>
   <link href="style.css" rel="stylesheet" />
   <link
     href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=Silkscreen:wght@400;700&amp;display=swap"
@@ -53,7 +53,7 @@
       <div class="batlle-top-menu">
         <div class="battle-top-player-menu">
           <div class="battle-top-text-container">
-            <p class="player-name top-menu-p"> Player Name :  </p>
+            <p class="player-name top-menu-p"> Player Name : </p>
             <p class="player-name top-menu-p" id="playerName"></p>
           </div>
           <div class="battle-top-text-container">
@@ -92,24 +92,22 @@
         <div class="dialog-row">
           <div id="battleQuestionLabel"><strong id="questionText"></strong></div>
         </div>
-        <div class="dialog-row">
+        <div class="dialog-row battle-dialog-row">
           <input class="pixel-input" id="battleAnswer" name="answer" placeholder="Answer here" required=""
             type="text" />
-          <button class="pixel-btn success" id="answerBtn">Answer</button>
-          <button class="pixel-btn danger" id="fleeBtn" type="button">Flee</button>
+          <div class="answer-flee-button-container">
+            <button class="pixel-btn success battle-button" id="answerBtn">Answer</button>
+            <button class="pixel-btn danger battle-button" id="fleeBtn" type="button">Flee</button>
+          </div>
         </div>
         <div class="dialog-row">
-          <button class="pixel-btn capture-button primary" onclick="handleCaptureSuccess()" id="captureBtn" type="button">Capture (1 ball)</button>
+          <button class="pixel-btn capture-button primary" onclick="handleCaptureSuccess()" id="captureBtn"
+            type="button">Capture (1 ball)</button>
           <span class="hint" id="captureHint"></span>
         </div>
       </div>
     </div>
-    <div class="overlay show" id="splash"
-      style="background:#0f380f;display:flex;align-items:center;justify-content:center;">
-      <img alt="BNI" id="splashLogo" src="assets/logo_bni.png"
-        style="width:min(320px,60vw);image-rendering:pixelated;transform:translateY(-120%);filter:drop-shadow(0 12px 0 rgba(0,0,0,.3))" />
-      <audio id="bootSound" preload="auto"></audio>
-    </div>
+
     <div class="overlay startScreen synth-bg" id="startScreen">
       <div class="panel startScreen gb-panel">
         <div style="display:flex;justify-content:center;margin:10px 0 16px">
@@ -166,26 +164,10 @@
         <div class="row center">
           <button class="btn gb-btn" id="retryBtn">RETRY WITHOUT MONSTER</button>
           <button class="btn gb-btn ghost" id="sendBtnOver">SEND MONSTER</button>
-          <button class="btn gb-btn " id="personalAnswerBtn">See Personal Answers</button>
         </div>
       </div>
     </div>
-    <div class="personal-answers-container" id="personalAnswersContainer">
-      <div class="panel pixel-panel gb-panel">
-        <h2 class="gb-h2">Personal Questions Answers</h2>
-        <div class="answer-title-container">
-          <p class="answer-title"> Questions </p>
-          <p class="answer-title"> Answers </p>
-        </div>
-        <div class="answers-list-container" id="answersList">
-           <div class="questions-container" id="questionsContainer"></div>
-           <div class="answers-container" id="answersContainer"></div>
-        </div>
-        <div class="row center" style="margin-top:10px">
-          <button class="btn gb-btn " id="closePersonalBtn">CLOSE</button>
-        </div>
-      </div>
-    </div>
+
 
     <script src="saves/saveAdapter.js"></script>
     <script src="auth/login.js"></script>
