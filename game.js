@@ -8,12 +8,13 @@ questions = window.QUESTIONS;
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
-  let W = canvas.width,
-    H = canvas.height;
+  let W = canvas.width;
+  let H = canvas.height;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
   let answeredQuestionIds = [];
   let currentProfile = {}
+  let ballSize = 40;
 
 
 
@@ -840,13 +841,28 @@ questions = window.QUESTIONS;
     playerName.textContent = displayName;
     const playerBalls = document.getElementById("playerBalls");
     if (playerBalls) {
+       ballSize = window.innerWidth <= 480 ? 30 : window.innerWidth <= 768 ? 40 : 50;
+     
       playerBalls.innerHTML =
-        `<svg class="ballIcon" height="45" viewBox="0 0 64 64" width="45" style="vertical-align:middle;">
+        `<svg class="ballIcon" height="${ballSize}" viewBox="0 0 64 64" width="${ballSize}" style="vertical-align:middle;">
         <circle cx="32" cy="32" fill="#00d4ff" r="14"></circle>
         <circle cx="32" cy="32" fill="#fff" r="5"></circle>
       </svg> <span style="font-weight:bold;"> X ${balls}</span>`;
     }
   }
+
+  window.addEventListener("resize", updateBallSize);
+  function updateBallSize() {
+  const playerBalls = document.getElementById("playerBalls");
+  if (playerBalls) {
+    ballSize = window.innerWidth <= 480 ? 30 : window.innerWidth <= 768 ? 40 : 50;
+    playerBalls.innerHTML =
+      `<svg class="ballIcon" height="${ballSize}" viewBox="0 0 64 64" width="${ballSize}" style="vertical-align:middle;">
+    <circle cx="32" cy="32" fill="#00d4ff" r="14"></circle>
+    <circle cx="32" cy="32" fill="#fff" r="5"></circle>
+  </svg> <span style="font-weight:bold;"> X ${balls}</span>`;
+  }
+}
 
   // ---------- Battle flow ----------
   function startBattle(mon) {
@@ -1632,8 +1648,6 @@ questions = window.QUESTIONS;
       triggerGameOverReal();
       return;
     }
-    const level = (mon.maxhp || 0) + (mon.power || 0);
-    const cost = level;
 
     corruptTitle.textContent = `${mon.name} is corrupted`;
     corruptVisual.innerHTML = "";
@@ -1989,17 +2003,20 @@ questions = window.QUESTIONS;
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
+      captureHint.className = "";
 
       battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
       fillBattleMenuDetails(battle.mon, battle.hp, activeUnit.power);
 
       if (battle.hp <= 0) {
-        captureHint.textContent = "Monster defeated! Automatic capture...";
+        captureHint.textContent = "Monster defeated!";
+        captureHint.className = "hint capture-correct";
         handleCaptureSuccess();
         return;
       }
 
-      captureHint.textContent = "Correct! You attacked the monster.";
+      captureHint.textContent = "Correct! Attack!.";
+      captureHint.className = "hint capture-correct";
       questionText.textContent = pickQuestion();
       battleAnswer.value = "";
       setTimeout(() => battleAnswer.focus(), 30);
@@ -2010,6 +2027,7 @@ questions = window.QUESTIONS;
       }
 
       captureHint.textContent = "Wrong answer! Battle ended.";
+      captureHint.className = "hint capture-wrong";
       setTimeout(() => {
         showFleeAndEnd(false);
       }, 900);
@@ -2131,14 +2149,12 @@ questions = window.QUESTIONS;
         const hp = monsterObj ? monsterObj.stats.maxhp ?? monsterObj.stats.hp : hpForId(c, f, k);
         const power = monsterObj ? monsterObj.stats.power : powerForId(c, f, k);
         const img = monsterObj ? monsterObj.img : "assets/default.png";
-        return { id, c, f, k, name, hp, power, level: hp + power, img };
+        return { id, c, f, k, name, hp, power, img };
       });
       arr.sort((a, b) => {
         let v = 0;
         if (by === "alpha") {
           v = a.name.localeCompare(b.name);
-        } else if (by === "level") {
-          v = a.level - b.level;
         } else if (by === "power") {
           v = a.power - b.power;
         } else if (by === "hp") {

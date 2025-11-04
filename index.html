@@ -92,18 +92,20 @@
         <div class="dialog-row">
           <div id="battleQuestionLabel"><strong id="questionText"></strong></div>
         </div>
-        <div class="dialog-row battle-dialog-row">
-          <input class="pixel-input" id="battleAnswer" name="answer" placeholder="Answer here" required=""
-            type="text" />
-          <div class="answer-flee-button-container">
-            <button class="pixel-btn success battle-button" id="answerBtn">Answer</button>
-            <button class="pixel-btn danger battle-button" id="fleeBtn" type="button">Flee</button>
+        <div class="battle-panel-inputs">
+          <div class="dialog-row battle-dialog-row">
+            <input class="pixel-input" id="battleAnswer" name="answer" placeholder="Answer here" required=""
+              type="text" />
+            <div class="answer-flee-button-container">
+              <button class="pixel-btn success battle-button" id="answerBtn">Answer</button>
+              <button class="pixel-btn danger battle-button" id="fleeBtn" type="button">Flee</button>
+            </div>
           </div>
-        </div>
-        <div class="dialog-row">
-          <button class="pixel-btn capture-button primary" onclick="handleCaptureSuccess()" id="captureBtn"
-            type="button">Capture (1 ball)</button>
-          <span class="hint" id="captureHint"></span>
+          <div class="dialog-row capture-container">
+            <button class="pixel-btn capture-button primary" onclick="handleCaptureSuccess()" id="captureBtn"
+              type="button">Capture (1 ball)</button>
+            <span class="hint" id="captureHint"></span>
+          </div>
         </div>
       </div>
     </div>

@@ -691,6 +691,7 @@ select {
   display: flex;
   justify-content: center;
   align-items: center;
+  max-height: 10px;
 }
 
 .battle-top-text-container {
@@ -707,11 +708,14 @@ select {
 
 .battle-dialog .dialog-row {
   display: flex;
+  width: 100%;
 }
 
 .capture-button {
   width: 100%;
 }
+
+
 
 .sortSel {
   font-weight: 800;
@@ -803,6 +807,10 @@ select {
   border-radius: 4px;
   outline: none;
   box-shadow: inset 0 0 8px rgba(0, 229, 255);
+}
+
+.battle-overlay .pixel-btn {
+  flex: 1;
 }
 
 
@@ -1196,6 +1204,16 @@ img {
   background-color: #00cccc;
 }
 
+ .battle-top-player-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 10px;
+    padding: 15px;
+  }
+
 .monster-delete {
   background-color: #ff4b4b;
   border-color: #ff4b4b;
@@ -1274,6 +1292,10 @@ img {
     width: 100vw;
     height: 100vh;
   }
+
+  .battle-top-player-menu { 
+    gap: 0px;
+  }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
@@ -1334,14 +1356,12 @@ img {
   }
 
   .pixel-btn {
-    min-height: 44px;
     font-size: 12px;
-    padding: 8px 16px;
+    padding: 4px 16px;
   }
 
   #battleAnswer {
     font-size: 16px;
-    min-height: 44px;
   }
 }
 
@@ -1366,8 +1386,8 @@ img {
   }
 
   .top-menu-icon {
-    width: 16px !important;
-    height: 16px !important;
+    width: 14px !important;
+    height: 14px !important;
   }
 }
 
@@ -1393,6 +1413,12 @@ img {
   .battle-top-menu {
     flex-direction: row;
     justify-content: space-between;
+  }
+
+   .battle-top-player-menu {
+    width: 100%;
+    gap: 0px;
+    padding: 10px;
   }
 }
 
@@ -1426,14 +1452,11 @@ img {
     margin-bottom: 8px;
   }
 
-  .battle-top-player-menu,
-  .battle-top-monster-menu {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    flex-wrap: wrap;
+  .battle-top-player-menu {
+   
     width: 100%;
-    gap: 0px;
+    gap: 2px;
+    padding: 7px;
   }
 
   .battle-top-text-container {
@@ -1450,8 +1473,8 @@ img {
 
   /* Icons için */
   .top-menu-icon {
-    width: 12px !important;
-    height: 12px !important;
+    width: 21px !important;
+    height: 21px !important;
   }
 
   /* Question area */
@@ -1464,15 +1487,12 @@ img {
   /* Input ve buttons */
   #battleAnswer {
     font-size: 14px !important;
-    padding: 8px !important;
-    min-height: 44px;
+    padding: 4px 8px !important;
   }
 
   .pixel-btn {
     font-size: 11px !important;
-    padding: 6px 12px !important;
-    min-height: 40px;
-    margin: 2px;
+    padding: 4px 12px !important;
   }
 
   /* Capture rate text */
@@ -1498,10 +1518,10 @@ img {
     font-size: 9px !important;
   }
 
-  .top-menu-icon {
-    width: 10px !important;
-    height: 10px !important;
+    .battle-top-player-menu { 
+    gap: 0px;
   }
+
 
   .question-text {
     font-size: 12px !important;
@@ -1511,7 +1531,6 @@ img {
   .pixel-btn {
     font-size: 10px !important;
     padding: 4px 8px !important;
-    min-height: 36px;
   }
 }
 
@@ -1534,6 +1553,10 @@ img {
     width: 48%;
   }
 
+  .battle-top-player-menu { 
+    gap: 0px;
+  }
+
   .question-text {
     font-size: 12px !important;
     padding: 4px !important;
@@ -1542,7 +1565,6 @@ img {
   .pixel-btn {
     font-size: 9px !important;
     padding: 3px 6px !important;
-    min-height: 32px;
   }
 }
 
@@ -1717,8 +1739,523 @@ img {
   .pixel-btn {
     min-width: 110px;
   }
+
+  .battle-overlay .pixel-panel {
+    padding: 10px 20px;
+  }
 }
 
 .battle-button {
   flex: 1;
 }
+
+
+/* Start Screen Responsive */
+@media (max-width: 768px) {
+  /* Mobile Portrait */
+  .start-screen {
+    padding: 10px !important;
+    font-size: 12px !important;
+  }
+  
+  .start-screen h1,
+  .game-title {
+    font-size: 24px !important;
+    margin-bottom: 15px !important;
+    line-height: 1.2;
+    text-align: center;
+  }
+  
+  .start-screen h2 {
+    font-size: 16px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .start-screen p,
+  .press-start {
+    font-size: 10px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.3;
+  }
+  
+  /* Start butonunu mobil için küçült */
+  #startBtn {
+    padding: 0.8rem 1.6rem !important;
+    min-width: 200px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Monster selection dropdown'u */
+  #monsterSelectStart {
+    font-size: 10px !important;
+    padding: 6px 8px !important;
+    max-width: 250px !important;
+    margin: 8px auto !important;
+  }
+  
+  /* Collection/Pokedex başlangıç alanı */
+  #pokedexStart {
+    font-size: 10px !important;
+    padding: 8px !important;
+  }
+  
+  #pokedexStart .pixel-btn {
+    font-size: 9px !important;
+    padding: 4px 8px !important;
+    margin: 2px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Mobile Portrait Small */
+  .start-screen {
+    padding: 5px !important;
+    font-size: 10px !important;
+  }
+  
+  .start-screen h1,
+  .game-title {
+    font-size: 20px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .start-screen h2 {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .start-screen p,
+  .press-start {
+    font-size: 8px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  #startBtn {
+    padding: 0.6rem 1.2rem !important;
+    min-width: 160px !important;
+    font-size: 10px !important;
+  }
+  
+  #monsterSelectStart {
+    font-size: 8px !important;
+    padding: 4px 6px !important;
+    max-width: 200px !important;
+  }
+  
+  #pokedexStart {
+    font-size: 8px !important;
+    padding: 4px !important;
+  }
+  
+  #pokedexStart .pixel-btn {
+    font-size: 7px !important;
+    padding: 3px 6px !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Mobile Landscape */
+  .start-screen {
+    padding: 4px !important;
+    font-size: 9px !important;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+  
+  .start-screen h1,
+  .game-title {
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .start-screen h2 {
+    font-size: 12px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .start-screen p,
+  .press-start {
+    font-size: 7px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  #startBtn {
+    padding: 0.5rem 1rem !important;
+    min-width: 140px !important;
+    font-size: 9px !important;
+  }
+  
+  #monsterSelectStart {
+    font-size: 7px !important;
+    padding: 3px 4px !important;
+    max-width: 180px !important;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .start-screen {
+    padding: 15px !important;
+    font-size: 14px !important;
+  }
+  
+  .start-screen h1,
+  .game-title {
+    font-size: 28px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .start-screen h2 {
+    font-size: 18px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .start-screen p,
+  .press-start {
+    font-size: 12px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  #startBtn {
+    padding: 1rem 2rem !important;
+    min-width: 240px !important;
+    font-size: 14px !important;
+  }
+  
+  #monsterSelectStart {
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+    max-width: 300px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .start-screen * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .start-screen .long-text {
+    font-size: 9px !important;
+    line-height: 1.2;
+    max-width: 90%;
+    margin: 0 auto;
+  }
+}
+
+/* Capture Hint - Uyarı Butonu Stili */
+.hint#captureHint {
+
+  text-align: center;
+  
+  flex: 1;
+  display: inline-block;
+  position: relative;
+  
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  
+  background: var(--bg-gradient);
+  color: #fff2f2;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  padding: 13.5px;
+ 
+  
+  /* Warning icon ekle */
+  &:before {
+    margin-right: 6px;
+    font-size: 16px;
+  }
+  
+     &:empty {
+    display: none;
+  }
+  /* Pulse animasyonu */
+
+}
+
+.capture-wrong {
+    animation: warningPulse 2s ease-in-out infinite;
+     text-shadow: 
+    0 0 8px rgba(220,38,127,.6), 
+    0 0 16px rgba(220,38,127,.3);
+
+      --glow: rgba(220,38,127,.55);
+  --border: #dc2626;
+  --bg-gradient: radial-gradient(160% 120% at 50% -30%, rgba(239,68,68,.35), rgba(24,8,8,.8));
+  
+  box-shadow:
+    0 0 20px var(--glow),
+    0 0 40px rgba(220,38,127,.25),
+    inset 0 0 0 1px rgba(255,255,255,.1),
+    0 4px 0 rgba(0,0,0,.8),
+    0 8px 20px rgba(0,0,0,.6);
+
+  /* Empty olduğunda gizle */
+  &:empty {
+    display: none;
+  }
+}
+
+.capture-correct {
+  --glow: rgba(34,197,94,.6);
+  --border: #22c55e;
+  --bg-gradient: radial-gradient(160% 120% at 50% -30%, rgba(34,197,94,.4), rgba(8,24,8,.9));
+  
+  color: #f0fdf4;
+  border-color: #22c55e;
+  
+  /* Ana animasyon */
+  animation: 
+    correctAnswerGlow 1.5s ease-in-out,
+    correctBorderPulse 1.5s ease-in-out,
+    correctRotatingGlow 2s ease-in-out infinite 1.5s;
+  
+  /* Text glow */
+  text-shadow: 
+    0 0 10px rgba(34,197,94,.8),
+    0 0 20px rgba(34,197,94,.5),
+    0 0 30px rgba(34,197,94,.3);
+
+      text-shadow: 
+    0 0 15px rgba(34,197,94,.9),
+    0 0 25px rgba(34,197,94,.6);
+  animation: correctIconPulse 0.5s ease-in-out 0.2s;
+
+   &:empty {
+    display: none;
+  }
+}
+
+/* Correct Answer Green Neon Animation */
+@keyframes correctAnswerGlow {
+  0% {
+    --glow: rgba(34,197,94,.3);
+    --border: #22c55e;
+    box-shadow:
+      0 0 10px var(--glow),
+      0 0 20px rgba(34,197,94,.2),
+      inset 0 0 0 1px rgba(255,255,255,.1),
+      0 4px 0 rgba(0,0,0,.8);
+    border-color: #22c55e;
+  }
+  
+  25% {
+    --glow: rgba(34,197,94,.7);
+    box-shadow:
+      0 0 25px var(--glow),
+      0 0 50px rgba(34,197,94,.4),
+      0 0 75px rgba(34,197,94,.2),
+      inset 0 0 0 2px rgba(255,255,255,.2),
+      0 4px 0 rgba(0,0,0,.8);
+    border-color: #10b981;
+    transform: scale(1.02);
+  }
+  
+  50% {
+    --glow: rgba(34,197,94,.9);
+    box-shadow:
+      0 0 35px var(--glow),
+      0 0 70px rgba(34,197,94,.6),
+      0 0 105px rgba(34,197,94,.3),
+      inset 0 0 0 3px rgba(255,255,255,.3),
+      0 4px 0 rgba(0,0,0,.8);
+    border-color: #059669;
+    transform: scale(1.05);
+  }
+  
+  75% {
+    --glow: rgba(34,197,94,.7);
+    box-shadow:
+      0 0 30px var(--glow),
+      0 0 60px rgba(34,197,94,.5),
+      0 0 90px rgba(34,197,94,.2),
+      inset 0 0 0 2px rgba(255,255,255,.2),
+      0 4px 0 rgba(0,0,0,.8);
+    border-color: #10b981;
+    transform: scale(1.02);
+  }
+  
+  100% {
+    --glow: rgba(34,197,94,.4);
+    box-shadow:
+      0 0 15px var(--glow),
+      0 0 30px rgba(34,197,94,.25),
+      inset 0 0 0 1px rgba(255,255,255,.1),
+      0 4px 0 rgba(0,0,0,.8);
+    border-color: #22c55e;
+    transform: scale(1);
+  }
+}
+
+/* Border pulse animation */
+@keyframes correctBorderPulse {
+  0%, 100% {
+    border-width: 2px;
+    border-color: #22c55e;
+  }
+  50% {
+    border-width: 4px;
+    border-color: #10b981;
+  }
+}
+
+/* Rotating glow effect */
+@keyframes correctRotatingGlow {
+  0% {
+    box-shadow:
+      0 0 20px rgba(34,197,94,.6),
+      0 0 40px rgba(34,197,94,.3),
+      inset 0 0 0 1px rgba(255,255,255,.1);
+  }
+  25% {
+    box-shadow:
+      5px 5px 25px rgba(34,197,94,.7),
+      0 0 45px rgba(34,197,94,.4),
+      inset 0 0 0 2px rgba(255,255,255,.15);
+  }
+  50% {
+    box-shadow:
+      0 10px 30px rgba(34,197,94,.8),
+      0 0 50px rgba(34,197,94,.5),
+      inset 0 0 0 3px rgba(255,255,255,.2);
+  }
+  75% {
+    box-shadow:
+      -5px 5px 25px rgba(34,197,94,.7),
+      0 0 45px rgba(34,197,94,.4),
+      inset 0 0 0 2px rgba(255,255,255,.15);
+  }
+}
+
+@keyframes correctIconPulse {
+  0%, 100% { 
+    transform: scale(1); 
+  }
+  50% { 
+    transform: scale(1.3); 
+  }
+}
+
+@keyframes successFlash {
+  0% { 
+    background: var(--bg-gradient);
+  }
+  15% { 
+    background: radial-gradient(160% 120% at 50% -30%, rgba(34,197,94,.7), rgba(255,255,255,.1));
+  }
+  30% { 
+    background: var(--bg-gradient);
+  }
+}
+
+.hint#captureHint.correct-answer {
+  animation: 
+    correctAnswerGlow 1.2s ease-out,
+    successFlash 0.6s ease-in-out 0.3s,
+    correctRotatingGlow 3s ease-in-out infinite 1.8s;
+}
+
+.hint#captureHint.correct:after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, 
+    transparent, 
+    rgba(34,197,94,.3), 
+    transparent, 
+    rgba(34,197,94,.3), 
+    transparent
+  );
+  border-radius: 10px;
+  z-index: -1;
+  animation: sparkleRotate 2s linear infinite;
+}
+
+@keyframes sparkleRotate {
+  0% { transform: rotate(0deg); opacity: 0.3; }
+  50% { opacity: 0.8; }
+  100% { transform: rotate(360deg); opacity: 0.3; }
+}
+
+/* Warning pulse animasyonu */
+@keyframes warningPulse {
+  0%, 100% { 
+    box-shadow:
+      0 0 20px var(--glow),
+      0 0 40px rgba(220,38,127,.25),
+      inset 0 0 0 1px rgba(255,255,255,.1),
+      0 4px 0 rgba(0,0,0,.8),
+      0 8px 20px rgba(0,0,0,.6);
+  }
+  50% { 
+    box-shadow:
+      0 0 30px rgba(220,38,127,.75),
+      0 0 60px rgba(220,38,127,.4),
+      inset 0 0 0 1px rgba(255,255,255,.15),
+      0 4px 0 rgba(0,0,0,.8),
+      0 8px 20px rgba(0,0,0,.6);
+  }
+}
+
+/* Mobile için küçült */
+@media (max-width: 778px) {
+  .hint#captureHint {
+    font-size: 11px;
+    padding: 6px;
+    
+    &:before {
+      font-size: 10px;
+      margin-right: 4px;
+    }
+  }
+
+
+}
+
+@media (max-width: 489px) {
+  .hint#captureHint {
+    font-size: 9px;
+    padding: 7px;
+    width: 100%;
+    
+    &:before {
+      font-size: 8px;
+      margin-right: 3px;
+    }
+  }
+
+   .capture-container {
+    flex-direction: column;
+  }
+
+}
+
+/* Alternatif renkler için */
+.hint#captureHint.success {
+  --glow: rgba(34,197,94,.55);
+  --border: #22c55e;
+  --bg-gradient: radial-gradient(160% 120% at 50% -30%, rgba(34,197,94,.35), rgba(8,24,8,.8));
+  color: #f0fdf4;
+  
+}
+
+.hint#captureHint.info {
+  --glow: rgba(59,130,246,.55);
+  --border: #3b82f6;
+  --bg-gradient: radial-gradient(160% 120% at 50% -30%, rgba(59,130,246,.35), rgba(8,14,24,.8));
+  color: #eff6ff;
+  
+
+}
+
+#questionText{
+  line-height: 23px;
+}
+
