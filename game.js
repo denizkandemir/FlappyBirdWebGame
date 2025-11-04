@@ -1,10 +1,7 @@
-// Angry Flappy: Monsters & Quiz Battles — v8.2 (half-hearts, new damage/capture/heal)
-
 monsters = window.MONSTERS;
 questions = window.QUESTIONS;
 
 (function () {
-
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
@@ -15,8 +12,6 @@ questions = window.QUESTIONS;
   let answeredQuestionIds = [];
   let currentProfile = {}
   let ballSize = 40;
-
-
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -74,7 +69,6 @@ questions = window.QUESTIONS;
           currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
         }
 
-        console.log("Profile found:", currentProfile);
 
         if (currentProfile && currentProfile.firstName) {
           displayName = currentProfile.firstName;
@@ -92,7 +86,6 @@ questions = window.QUESTIONS;
     }
   });
 
-  console.log({ activeUnit });
   let resumeAt = 0;
 
   const S = {
@@ -180,20 +173,16 @@ questions = window.QUESTIONS;
   // Collection
   let collection = loadCollection();
 
-  // Capture tuning: +15% per ball thrown in current battle
   const CAPTURE_ATTEMPT_BONUS = 0.15; // 15%
   let captureAttemptsInBattle = 0;
 
-  // Build dropdown(s) for selecting a captured monster
   function updateMonsterSelect(selectEl) {
     if (!selectEl) return;
-    // Clear and rebuild
     while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = "-- Aucun — (jouer sans monstre)";
     selectEl.appendChild(placeholder);
-    // Build nice label for each captured monster
     const list = (collection || [])
       .slice()
       .map((id) => {
@@ -211,14 +200,12 @@ questions = window.QUESTIONS;
       if (selectedMonsterId && selectedMonsterId === m.id) opt.selected = true;
       selectEl.appendChild(opt);
     }
-    // Wire events (overwrite any previous one)
     selectEl.onchange = (e) => {
       selectedMonsterId = e.target.value || null;
       updateSendButtons();
     };
   }
 
-  /* render dexStart after load */
   try {
     const selStart = document.getElementById("monsterSelectStart");
     if (selStart) updateMonsterSelect(selStart);
@@ -310,12 +297,9 @@ questions = window.QUESTIONS;
     return 0;
   }
 
-  // Entities
-
   let checkSize = false;
   if (window.innerWidth <= 480) {
     checkSize = true;
-    console.log("480");
   }
 
   const bird = {
@@ -329,7 +313,6 @@ questions = window.QUESTIONS;
   };
   let pipes = [];
   let nextPipeX = 600;
-  console.log(monsters);
   let monsterTimer = 0;
   let items = [];
   let itemTimer = 1.5;
@@ -405,7 +388,6 @@ questions = window.QUESTIONS;
   });
 
   document.addEventListener('DOMContentLoaded', resizeCanvas);
-
 
   let touchStartY = 0;
   let touchEndY = 0;
@@ -484,12 +466,10 @@ questions = window.QUESTIONS;
   // ---------- Background (synthwave) ----------
   const worldHelpers = {
     synthParallaxBG() {
-      // Canvas boyutları
       const w = W;
       const h = H;
       const t = performance.now() / 1000;
 
-      // Arka plan gradyanı
       ctx.save();
       ctx.fillStyle = ctx.createRadialGradient(
         w * 0.2,
@@ -761,14 +741,6 @@ questions = window.QUESTIONS;
     }
   }
 
-  // --- DRAW LOOP ENTEGRASYONU ---
-  // draw() fonksiyonunun içine şunları sırayla koy:
-  // 1) drawBackGrid()
-  // 2) drawScanline()
-  // 3) borular
-  // 4) trail
-  // 5) drawBird()
-
   function drawMonster(mon, scale = 1) {
     ctx.save();
     ctx.translate(mon.x, mon.y);
@@ -963,7 +935,6 @@ questions = window.QUESTIONS;
 
   function pickQuestion() {
     const unanswered = questions.filter(q => !answeredQuestionIds.includes(q.id));
-    console.log("Unanswered questions:", answeredQuestionIds);
     if (unanswered.length === 0) return "No more questions!";
     const idx = Math.floor(Math.random() * unanswered.length);
     return unanswered[idx].question;
@@ -1098,8 +1069,6 @@ questions = window.QUESTIONS;
       playerName = "error fetching name";
     }
 
-
-    // Monster objesini kullan
     const mon = {
       id: monsterObj.id,
       name: monsterObj.name,
@@ -1162,9 +1131,7 @@ questions = window.QUESTIONS;
   }
   if (sendBtnStart) {
     sendBtnStart.addEventListener("click", () => {
-      console.log({ selectedMonsterId });
       if (selectedMonsterId) startWithMonster(selectedMonsterId);
-      console.log({ selectedMonsterId });
     });
   }
 
@@ -2045,7 +2012,6 @@ questions = window.QUESTIONS;
   function getCaptureRate(mon, hp, playerPower) {
     let rate = (100 - ((hp * 10) + (playerPower * 5)));
     rate = Math.max(0, rate);
-    console.log("Capture rate calculated:", rate);
     return parseInt(rate, 10);
   }
 
