@@ -16,6 +16,16 @@
 </head>
 
 <body>
+  <button class="pixel-btn pause-btn" id="pauseBtn"> ⏸️ </button>
+  <div id="pauseOverlay" class="overlay">
+    <div class="dialog pixel-panel">
+      <h2>Game Paused</h2>
+      <div class="button-group">
+        <button class="pixel-btn" id="resumeBtn">Resume</button>
+        <button class="pixel-btn" id="mainMenuBtn">Main Menu</button>
+      </div>
+    </div>
+  </div>
   <div id="hudWrap">
     <div id="hud">
       <div style="display:flex;align-items:center;gap:8px">
@@ -168,6 +178,7 @@
           <button class="btn gb-btn ghost" id="sendBtnOver">SEND MONSTER</button>
         </div>
       </div>
+
     </div>
 
 

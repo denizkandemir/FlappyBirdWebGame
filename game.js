@@ -34,6 +34,7 @@ questions = window.QUESTIONS;
 
   const dexStart = document.getElementById("pokedexStart");
   const dexEl = document.getElementById("pokedex");
+
   /* init start collection */
   try {
     if (dexStart) renderCollectionPaged(dexStart);
@@ -87,6 +88,117 @@ questions = window.QUESTIONS;
   });
 
   let resumeAt = 0;
+
+  let isPaused = false;
+  let pauseOverlay = null;
+  let pauseBtn = null;
+  let resumeBtn = null;
+  let mainMenuBtn = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    pauseOverlay = document.getElementById("pauseOverlay");
+    pauseBtn = document.getElementById("pauseBtn");
+    resumeBtn = document.getElementById("resumeBtn");
+    mainMenuBtn = document.getElementById("mainMenuBtn");
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener("click", togglePause);
+    }
+
+    if (resumeBtn) {
+      resumeBtn.addEventListener("click", resumeGame);
+    }
+
+    if (mainMenuBtn) {
+      mainMenuBtn.addEventListener("click", goToMainMenu);
+    }
+  });
+
+  function pauseGame() {
+    if (state !== "playing" || isPaused) return;
+
+    isPaused = true;
+
+    if (pauseOverlay) {
+      pauseOverlay.classList.add("show");
+    }
+
+    const hudWrap = document.getElementById("hudWrap");
+    if (hudWrap) {
+      hudWrap.style.display = "none";
+    }
+
+    console.log("Game Paused");
+  }
+
+  function resumeGame() {
+    if (!isPaused) return;
+
+    isPaused = false;
+
+    if (pauseOverlay) {
+      pauseOverlay.classList.remove("show");
+    }
+
+    const hudWrap = document.getElementById("hudWrap");
+    if (hudWrap && state === "playing") {
+      hudWrap.style.display = "";
+    }
+
+    resumeAt = performance.now() + 500;
+
+    console.log("Game Resumed");
+  }
+
+  function togglePause() {
+    if (isPaused) {
+      resumeGame();
+    } else {
+      pauseGame();
+    }
+  }
+
+  function goToMainMenu() {
+    isPaused = false;
+    if (pauseOverlay) {
+      pauseOverlay.classList.remove("show");
+    }
+
+    if (state === "battle") {
+      endBattle(false);
+    }
+
+    state = "start";
+    startScreen.classList.add("show");
+    gameOverEl.classList.remove("show");
+
+    const hudWrap = document.getElementById("hudWrap");
+    if (hudWrap) {
+      hudWrap.style.display = "none";
+    }
+
+    console.log("Returned to Main Menu");
+  }
+
+  function onKeyDown(e) {
+    if (e.code === "Space" && state !== "battle") {
+      e.preventDefault();
+      handlePressDown();
+    }
+
+    if (e.code === "Escape") {
+      e.preventDefault();
+      console.log("ESC pressed, state:", state, "isPaused:", isPaused);
+      if (state === "playing") {
+        togglePause();
+      } else if (state === "battle") {
+        if (fleeBtn && !fleeBtn.disabled) {
+          fleeBtn.click();
+        }
+      }
+      return;
+    }
+  }
 
   const S = {
     gravity: 1600,
@@ -265,9 +377,8 @@ questions = window.QUESTIONS;
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
   function monsterName(catIdx, formIdx, colorIdx) {
-    const cat = Categories[catIdx],
-      form = Forms[cat][formIdx],
-      col = Colors[colorIdx].name;
+    const cat = Categories[catIdx];
+
     const name = takeFirst3(form) + takeFirst3(cat) + takeLast3(col);
     return capFirst(name);
   }
@@ -813,8 +924,8 @@ questions = window.QUESTIONS;
     playerName.textContent = displayName;
     const playerBalls = document.getElementById("playerBalls");
     if (playerBalls) {
-       ballSize = window.innerWidth <= 480 ? 30 : window.innerWidth <= 768 ? 40 : 50;
-     
+      ballSize = window.innerWidth <= 480 ? 30 : window.innerWidth <= 768 ? 40 : 50;
+
       playerBalls.innerHTML =
         `<svg class="ballIcon" height="${ballSize}" viewBox="0 0 64 64" width="${ballSize}" style="vertical-align:middle;">
         <circle cx="32" cy="32" fill="#00d4ff" r="14"></circle>
@@ -825,19 +936,23 @@ questions = window.QUESTIONS;
 
   window.addEventListener("resize", updateBallSize);
   function updateBallSize() {
-  const playerBalls = document.getElementById("playerBalls");
-  if (playerBalls) {
-    ballSize = window.innerWidth <= 480 ? 30 : window.innerWidth <= 768 ? 40 : 50;
-    playerBalls.innerHTML =
-      `<svg class="ballIcon" height="${ballSize}" viewBox="0 0 64 64" width="${ballSize}" style="vertical-align:middle;">
+    const playerBalls = document.getElementById("playerBalls");
+    if (playerBalls) {
+      ballSize = window.innerWidth <= 480 ? 30 : window.innerWidth <= 768 ? 40 : 50;
+      playerBalls.innerHTML =
+        `<svg class="ballIcon" height="${ballSize}" viewBox="0 0 64 64" width="${ballSize}" style="vertical-align:middle;">
     <circle cx="32" cy="32" fill="#00d4ff" r="14"></circle>
     <circle cx="32" cy="32" fill="#fff" r="5"></circle>
   </svg> <span style="font-weight:bold;"> X ${balls}</span>`;
+    }
   }
-}
 
   // ---------- Battle flow ----------
   function startBattle(mon) {
+
+    if (pauseBtn) {
+      pauseBtn.style.display = "none";
+    }
 
     const hudWrap = document.getElementById("hudWrap");
     if (hudWrap) hudWrap.style.display = "none"; // HUD toggle on battle
@@ -893,6 +1008,10 @@ questions = window.QUESTIONS;
     resumeAt = performance.now() + 900;
     state = "playing";
     bird.invulnUntil = Date.now() + 700;
+
+    if (pauseBtn && state === "playing") {
+      pauseBtn.style.display = "block";
+    }
   }
   function neonBallSVG(size = 20) {
     return `<svg class="ballIcon" viewBox='0 0 64 64' width='${size}' height='${size}' aria-hidden='true'>
@@ -912,6 +1031,8 @@ questions = window.QUESTIONS;
     <circle cx='32' cy='32' r='15' fill='none' stroke='url(#gRing2)' stroke-width='6'></circle>
     <circle cx='32' cy='32' r='3' fill='#ffffff'></circle>
   </svg>`;
+
+
   }
 
   function positionBattleOverlay() {
@@ -1000,6 +1121,12 @@ questions = window.QUESTIONS;
   canvas.addEventListener("pointerdown", onPointerDown, { passive: false });
   canvas.addEventListener("pointerup", onPointerUp, { passive: false });
   window.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keydown", onKeyDown);
+
+  document.addEventListener("keydown", function (e) {
+    console.log("Key pressed:", e.code); // Debug için
+    onKeyDown(e);
+  });
   window.addEventListener("keyup", onKeyUp);
 
   if (startBtn) {
@@ -1159,6 +1286,10 @@ questions = window.QUESTIONS;
 
   // ---------- Game reset / HUD ----------
   function resetGame() {
+    isPaused = false;
+    if (pauseOverlay) {
+      pauseOverlay.classList.remove("show");
+    }
     /* ensure bird defaults */
     selectedMonsterId = null;
     if (typeof control !== "undefined") {
@@ -1249,12 +1380,18 @@ questions = window.QUESTIONS;
     state = "playing";
     renderCollectionPaged(dexStart);
     updateSendButtons();
+    if (pauseBtn) {
+      pauseBtn.style.display = "block";
+    }
   }
   function updateHUD() {
     livesEl.innerHTML = heartsHTML(lives, activeUnit.hpMax);
     scoreEl.textContent = score;
     ballsCountEl.textContent = balls;
     if (hudPowerVal) hudPowerVal.textContent = String(activeUnit.power);
+    if (pauseBtn) {
+      pauseBtn.style.display = (state === "playing" && !isPaused) ? "block" : "none";
+    }
   }
 
   // ---------- Player physics / AI ----------
@@ -1326,7 +1463,11 @@ questions = window.QUESTIONS;
     if (performance.now() < resumeAt) return;
     const dx = S.speed * dt;
     world.scrollX += dx;
-    // Player physics by mode
+
+    if (pauseBtn) {
+      pauseBtn.style.display = (state === "playing" && !isPaused) ? "block" : "none";
+    }
+
     if (control.mode === "fly") {
       bird.vy += S.gravity * dt;
     } else if (control.mode === "ground") {
@@ -1615,6 +1756,8 @@ questions = window.QUESTIONS;
       triggerGameOverReal();
       return;
     }
+
+    const cost = Math.max(5, (mon.maxhp + mon.power) * 2);
 
     corruptTitle.textContent = `${mon.name} is corrupted`;
     corruptVisual.innerHTML = "";
@@ -2194,6 +2337,7 @@ questions = window.QUESTIONS;
     const dt = Math.min(0.033, (ts - last) / 1000);
     last = ts;
     if (state === "playing") update(dt);
+    if (performance.now() < resumeAt) return;
     ctx.clearRect(0, 0, W, H);
     if (state === "battle") {
       drawBattleOverlays();
