@@ -1,5 +1,203 @@
-monsters = window.MONSTERS;
 questions = window.QUESTIONS;
+
+let monsters = [
+  {
+    id: "0-3-8",
+    name: "Skyrazor",
+    category: "Flying",
+    form: "Raptix",
+    color: { name: "Rose", hex: "#ec4899" },
+    stats: { hp: 1, maxhp: 1, power: 3, stars: 1 },
+    img: "assets/monster1.png"
+  },
+  {
+    id: "1-5-1",
+    name: "Stonefang",
+    category: "Earth",
+    form: "Herizo",
+    color: { name: "Azure", hex: "#3b82f6" },
+    stats: { hp: 6, maxhp: 6, power: 3, stars: 0 },
+    img: "assets/monster2.png"
+  },
+  {
+    id: "2-2-5",
+    name: "Shadeclaw",
+    category: "Ceiling",
+    form: "Stalax",
+    color: { name: "Shadow", hex: "#374151" },
+    stats: { hp: 7, maxhp: 7, power: 1, stars: 1 },
+    img: "assets/monster3.png"
+  },
+  {
+    id: "0-0-3",
+    name: "Goldtalon",
+    category: "Flying",
+    form: "Aileron",
+    color: { name: "Gold", hex: "#f59e0b" },
+    stats: { hp: 3, maxhp: 3, power: 3, stars: 1 },
+    img: "assets/monster4.png"
+  },
+  {
+    id: "1-2-7",
+    name: "Bronzebite",
+    category: "Earth",
+    form: "Rochet",
+    color: { name: "Bronze", hex: "#b45309" },
+    stats: { hp: 4, maxhp: 4, power: 3, stars: 1 },
+    img: "assets/monster5.png"
+  },
+  {
+    id: "2-5-0",
+    name: "Crimsonbane",
+    category: "Ceiling",
+    form: "Pendu",
+    color: { name: "Crimson", hex: "#ef4444" },
+    stats: { hp: 5, maxhp: 5, power: 1, stars: 0 },
+    img: "assets/monster6.png"
+  },
+  {
+    id: "0-5-9",
+    name: "Stormveil",
+    category: "Flying",
+    form: "Fumee",
+    color: { name: "Cyan", hex: "#06b6d4" },
+    stats: { hp: 10, maxhp: 10, power: 3, stars: 2 },
+    img: "assets/monster7.png"
+  },
+  {
+    id: "1-8-4",
+    name: "Ironjaw",
+    category: "Flying",
+    form: "Gravelon",
+    color: { name: "Iron", hex: "#9ca3af" },
+    stats: { hp: 8, maxhp: 8, power: 5, stars: 2 },
+    img: "assets/monster8.png"
+  },
+  {
+    id: "2-4-6",
+    name: "Bloodfeather",
+    category: "Flying",
+    form: "Corvax",
+    color: { name: "Vermilion", hex: "#dc2626" },
+    stats: { hp: 6, maxhp: 6, power: 2, stars: 1 },
+    img: "assets/monster9.png"
+  },
+  {
+    id: "0-7-2",
+    name: "Frostwing",
+    category: "Flying",
+    form: "Nebrix",
+    color: { name: "Silver", hex: "#d1d5db" },
+    stats: { hp: 9, maxhp: 9, power: 2, stars: 3 },
+    img: "assets/monster10.png"
+  },
+  {
+    id: "1-3-3",
+    name: "Earthbreaker",
+    category: "Flying",
+    form: "Gorak",
+    color: { name: "Olive", hex: "#6b7280" },
+    stats: { hp: 12, maxhp: 12, power: 4, stars: 2 },
+    img: "assets/monster11.png"
+  },
+  {
+    id: "2-9-0",
+    name: "Nightmaw",
+    category: "Flying",
+    form: "Lurix",
+    color: { name: "Indigo", hex: "#4338ca" },
+    stats: { hp: 5, maxhp: 5, power: 4, stars: 2 },
+    img: "assets/monster12.png"
+  },
+  {
+    id: "0-6-8",
+    name: "Skybreaker",
+    category: "Flying",
+    form: "Aerath",
+    color: { name: "Teal", hex: "#14b8a6" },
+    stats: { hp: 11, maxhp: 11, power: 3, stars: 3 },
+    img: "assets/monster13.png"
+  },
+  {
+    id: "1-9-4",
+    name: "Moltenfang",
+    category: "Earth",
+    form: "Molgar",
+    color: { name: "Amber", hex: "#f97316" },
+    stats: { hp: 9, maxhp: 9, power: 4, stars: 3 },
+    img: "assets/monster14.png"
+  },
+  {
+    id: "2-1-2",
+    name: "Darkspire",
+    category: "Flying",
+    form: "Shadeon",
+    color: { name: "Obsidian", hex: "#111827" },
+    stats: { hp: 4, maxhp: 4, power: 2, stars: 2 },
+    img: "assets/monster15.png"
+  },
+  {
+    id: "0-8-5",
+    name: "Windreaper",
+    category: "Flying",
+    form: "Aeronis",
+    color: { name: "Azure", hex: "#38bdf8" },
+    stats: { hp: 8, maxhp: 8, power: 3, stars: 2 },
+    img: "assets/monster16.png"
+  },
+
+  {
+    id: "1-4-9",
+    name: "Crystalhorn",
+    category: "Earth",
+    form: "Gemraxx",
+    color: { name: "Purple", hex: "#8b5cf6" },
+    stats: { hp: 10, maxhp: 10, power: 5, stars: 2 },
+    img: "assets/monster17.png"
+  },
+
+  {
+    id: "2-7-3",
+    name: "Voidclaw",
+    category: "Ceiling",
+    form: "Umbraxis",
+    color: { name: "Black", hex: "#000000" },
+    stats: { hp: 6, maxhp: 6, power: 9, stars: 3 },
+    img: "assets/monster18.png"
+  },
+
+  {
+    id: "0-1-7",
+    name: "Flamewyrm",
+    category: "Flying",
+    form: "Pyrothon",
+    color: { name: "Scarlet", hex: "#e11d48" },
+    stats: { hp: 13, maxhp: 13, power: 7, stars: 4 },
+    img: "assets/monster19.png"
+  },
+  {
+    id: "1-6-2",
+    name: "Quartzfist",
+    category: "Earth",
+    form: "Geodon",
+    color: { name: "Rose", hex: "#f43f5e" },
+    stats: { hp: 7, maxhp: 7, power: 4, stars: 1 },
+    img: "assets/monster20.png"
+  },
+
+  {
+    id: "2-3-8",
+    name: "Spectrewing",
+    category: "Ceiling",
+    form: "Phantros",
+    color: { name: "Violet", hex: "#7c3aed" },
+    stats: { hp: 5, maxhp: 5, power: 6, stars: 2 },
+    img: "assets/monster21.png"
+  }
+];
+
+const originalMonsters = monsters.slice();
+
 
 (function () {
   const canvas = document.getElementById("game");
@@ -41,17 +239,7 @@ questions = window.QUESTIONS;
 
     const successRate = totalAnswered > 0 ? (correctAnswers / totalAnswered) * 100 : 0;
 
-    console.log("Game Progress:", {
-      totalQuestions,
-      answered: totalAnswered,
-      correct: correctAnswers,
-      incorrect: incorrectAnswers,
-      fled: fleeCount,
-      successRate: successRate.toFixed(1) + "%"
-    });
-
     if (allQuestionsCompleted) {
-      console.log("GAME COMPLETION TRIGGERED!");
       triggerGameCompletion(true, successRate, correctAnswers, incorrectAnswers, fleeCount);
     }
   }
@@ -188,12 +376,9 @@ questions = window.QUESTIONS;
   function loadCollection() {
     try {
       const data = JSON.parse(localStorage.getItem("angryflappy_collection") || "[]");
-      // Eski format kontrolü - string array'ı obje array'ına çevir
       if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
         const converted = data.map(id => ({ id, amount: 1 }));
-        // Converted data'yı hemen kaydet
         localStorage.setItem("angryflappy_collection", JSON.stringify(converted));
-        console.log("Collection converted from string to object format");
         return converted;
       }
       return data;
@@ -208,7 +393,6 @@ questions = window.QUESTIONS;
   collection = loadCollection();
 
   const startScreen = document.getElementById("startScreen");
-  const startBtn = document.getElementById("startBtn");
   const sendBtnStart = document.getElementById("sendBtnStart");
   const gameOverEl = document.getElementById("gameOver");
   const sendBtnOver = document.getElementById("sendBtnOver");
@@ -274,7 +458,6 @@ questions = window.QUESTIONS;
           displayName = "Name Error";
         }
       } catch (e) {
-        console.log("Profile error:", e);
         displayName = "Name Error";
       }
     }
@@ -320,15 +503,12 @@ questions = window.QUESTIONS;
     if (hudWrap) {
       hudWrap.style.display = "none";
     }
-
-    console.log("Game Paused");
   }
 
   function resumeGame() {
     if (!isPaused) return;
 
     isPaused = false;
-    console.log("Resuming game...");
 
     if (pauseOverlay) {
       pauseOverlay.classList.remove("show");
@@ -340,8 +520,6 @@ questions = window.QUESTIONS;
     }
 
     resumeAt = performance.now() + 500;
-
-    console.log("Game Resumed");
   }
 
   function togglePause() {
@@ -370,21 +548,14 @@ questions = window.QUESTIONS;
     if (hudWrap) {
       hudWrap.style.display = "none";
     }
-
-    console.log("Returned to Main Menu");
   }
 
   function onKeyDown(e) {
-    console.log("Key pressed:", e.code, "State:", state); // Debug
-
-
     if (e.code === "Escape" || e.code === "ESC" || e.key === "Esc" || e.key === "esc") {
       e.preventDefault();
-      console.log("ESC pressed, state:", state, "isPaused:", isPaused);
       if (state === "playing") {
         togglePause();
       } else if (state === "battle") {
-        console.log("ESC in battle, clicking flee");
         if (fleeBtn && !fleeBtn.disabled) {
           fleeBtn.click();
         }
@@ -494,7 +665,7 @@ questions = window.QUESTIONS;
         const amount = item.amount || 1;
 
         const [c, f, k] = id.split("-").map((n) => parseInt(n));
-        const monsterObj = window.MONSTERS.find(m => m.id === id);
+        const monsterObj = monsters.find(m => m.id === id);
         const name = monsterObj ? monsterObj.name : "Unknown";
         const hp = monsterObj ? (monsterObj.stats?.maxhp ?? monsterObj.stats?.hp ?? 1) : 1;
         const power = monsterObj ? (monsterObj.stats?.power ?? 1) : 1;
@@ -1088,8 +1259,6 @@ questions = window.QUESTIONS;
           currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
         }
 
-        console.log("Profile found:", currentProfile);
-
         if (currentProfile && currentProfile.firstName) {
           displayName = currentProfile.firstName;
         } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
@@ -1100,7 +1269,6 @@ questions = window.QUESTIONS;
           displayName = "Dresseur";
         }
       } catch (e) {
-        console.log("Profile error:", e);
         displayName = "Name Error";
       }
     }
@@ -1185,7 +1353,6 @@ questions = window.QUESTIONS;
   }
 
   function showFleeAndEnd(consumedLife) {
-    console.log("showFleeAndEnd called, consumedLife:", consumedLife);
 
     if (consumedLife) {
       if (lives > 0.5) {
@@ -1201,18 +1368,15 @@ questions = window.QUESTIONS;
       if (idx !== -1) {
         lastBattledMonster.x = -9999;
         lastBattledMonster.y = -9999;
-        console.log("Monster moved off-screen after flee");
       }
     }
 
     setTimeout(() => {
-      console.log("Ending battle after flee/wrong answer");
       endBattle(false, false);
     }, 500);
   }
 
   function endBattle(consumedLife, wasCaptured) {
-    console.log("endBattle called, state before:", state);
 
     const hudWrap = document.getElementById("hudWrap");
     if (hudWrap) hudWrap.style.display = "";
@@ -1242,8 +1406,6 @@ questions = window.QUESTIONS;
     if (pauseBtn && state === "playing") {
       pauseBtn.style.display = "block";
     }
-
-    console.log("endBattle finished, state after:", state);
   }
 
   function neonBallSVG(size = 20) {
@@ -1353,15 +1515,7 @@ questions = window.QUESTIONS;
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
 
-  if (startBtn) {
-    startBtn.addEventListener("click", () => {
-      availableMonsters = monsters.slice();
-      collidedMonsterIds = [];
-      startScreen.classList.remove("show");
-      selectedMonsterId = null;
-      resetGame();
-    });
-  }
+
   if (retryBtn) {
     retryBtn.addEventListener("click", () => {
       if (corruptOverlay) corruptOverlay.classList.remove("show");
@@ -1560,8 +1714,6 @@ questions = window.QUESTIONS;
           currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
         }
 
-        console.log("Profile found:", currentProfile);
-
         if (currentProfile && currentProfile.firstName) {
           displayName = currentProfile.firstName;
         } else if (currentProfile && currentProfile.firstName && currentProfile.lastName) {
@@ -1572,7 +1724,6 @@ questions = window.QUESTIONS;
           displayName = "Name Error Reset Game";
         }
       } catch (e) {
-        console.log("Profile error:", e);
         displayName = "Name Error Reset Game";
       }
     }
@@ -1939,13 +2090,11 @@ questions = window.QUESTIONS;
 
       if (collectionItem && collectionItem.amount > 0) {
         collectionItem.amount -= 1;
-        console.log(`${activeUnit.monster.name} amount decreased to ${collectionItem.amount}`);
 
         if (collectionItem.amount <= 0) {
           const index = collection.findIndex(item => item.id === monsterId);
           if (index !== -1) {
             collection.splice(index, 1);
-            console.log(`${activeUnit.monster.name} removed from collection (amount reached 0)`);
           }
         }
 
@@ -2326,7 +2475,6 @@ questions = window.QUESTIONS;
               localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
             }
             anim.capture.active = false;
-            console.log("draw battle calls")
 
             showFleeAndEnd(false);
           } else {
@@ -2439,7 +2587,6 @@ questions = window.QUESTIONS;
       captureHint.className = "hint capture-wrong";
 
       setTimeout(() => {
-        console.log("Wrong answer - ending battle");
         showFleeAndEnd(false, false);
       }, 500);
       return;
@@ -2502,14 +2649,11 @@ questions = window.QUESTIONS;
             if (typeof existing === 'string') {
               const index = collection.indexOf(existing);
               collection[index] = { id: existing, amount: 2 }; // 1 + 1 = 2
-              console.log(`${battle.mon.name} converted to object format with amount 2`);
             } else if (typeof existing === 'object') {
               existing.amount += 1;
-              console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
             }
           } else {
             collection.push({ id, amount: 1 });
-            console.log(`${battle.mon.name} captured for the first time`);
           }
 
           saveCollection(collection);
@@ -2568,8 +2712,6 @@ questions = window.QUESTIONS;
     anim.hurtFlashT = performance.now() + 160;
     if (lives <= 0.5) {
       ++lostBattlesRun;
-      console.log("enemy attack calls")
-
       showFleeAndEnd(false);
       return;
     }
@@ -2577,7 +2719,6 @@ questions = window.QUESTIONS;
       lives = 0.5;
       updateHUD();
       ++lostBattlesRun;
-      console.log("enemy attack calls");
       showFleeAndEnd(false);
       return;
     }
@@ -2603,7 +2744,7 @@ questions = window.QUESTIONS;
           const id = item.id || item; // Geriye uyumluluk
           const amount = item.amount || 1;
 
-          const monsterObj = window.MONSTERS.find(m => m.id === id);
+          const monsterObj = monsters.find(m => m.id === id);
           if (!monsterObj) {
             console.warn("Monster not found for ID:", id);
             return null;
@@ -2707,7 +2848,6 @@ questions = window.QUESTIONS;
   const startOverBtn = document.getElementById("startOverBtn");
   if (startOverBtn) {
     startOverBtn.addEventListener("click", () => {
-      console.log("Start Over clicked - Complete reset");
 
       startOverBtn.disabled = true;
       startOverBtn.textContent = "RESTARTING...";
@@ -2727,7 +2867,13 @@ questions = window.QUESTIONS;
         localStorage.removeItem("angryflappy_bestcaprun");
         localStorage.removeItem("angryflappy_bestscore");
 
-        availableMonsters = monsters.slice();
+        balls = 0;
+        localStorage.removeItem("angryflappy_balls");
+        saveBalls();
+
+        monsters = originalMonsters.slice();
+        availableMonsters = originalMonsters.slice();
+
         collidedMonsterIds.length = 0;
         answeredQuestionIds.length = 0;
         selectedMonsterId = null;
@@ -2749,10 +2895,39 @@ questions = window.QUESTIONS;
         startOverBtn.disabled = false;
         startOverBtn.textContent = "START OVER";
 
-        console.log("Complete game reset - All data cleared");
-      }, 500); 
+      }, 500);
     });
   }
+
+  const startBtn = document.getElementById("startBtn");
+  if (startBtn) {
+    startBtn.addEventListener("click", () => {
+      selectedMonsterId = null;
+
+      if (startScreen) {
+        startScreen.classList.remove("show");
+      }
+
+      resetGame();
+    });
+  }
+
+  const retryWithoutMonsterBtn = document.getElementById("retryWithoutMonsterBtn");
+  if (retryWithoutMonsterBtn) {
+    retryWithoutMonsterBtn.addEventListener("click", () => {
+      selectedMonsterId = null;
+
+      if (gameOverEl) {
+        gameOverEl.classList.remove("show");
+      }
+      if (corruptOverlay) {
+        corruptOverlay.classList.remove("show");
+      }
+
+      resetGame();
+    });
+  }
+
 
   function startNewGame() {
     gameOverEl.classList.remove("show");
@@ -2774,6 +2949,8 @@ questions = window.QUESTIONS;
     }
 
     selectedMonsterId = null;
+    monsters = originalMonsters.slice();
+    availableMonsters = originalMonsters.slice();
 
     if (window.innerWidth <= 480) {
       bird.x = W * 0.13;
@@ -2881,14 +3058,9 @@ questions = window.QUESTIONS;
     if (pauseBtn) {
       pauseBtn.style.display = "block";
     }
-
-    console.log("New game started");
   }
 })();
-/* SPLASH */
-const splash = document.getElementById("splash");
-const splashLogo = document.getElementById("splashLogo");
-const startScreen = document.getElementById("startScreen");
+
 
 function playBootChime() {
   try {
@@ -2918,9 +3090,6 @@ function playBootChime() {
 
 if (startScreen) {
   startScreen.classList.add("show");
-}
-if (splash) {
-  splash.style.display = "none";
 }
 
 try {
