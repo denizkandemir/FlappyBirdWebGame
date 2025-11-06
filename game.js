@@ -11,7 +11,9 @@ questions = window.QUESTIONS;
   let collidedMonsterIds = [];
   let currentProfile = {}
   let ballSize = 40;
-
+  let correctlyAnsweredQuestionIds = []; // YENİ - Sadece doğru cevaplanlar
+  let incorrectlyAnsweredQuestionIds = []; // YENİ - Yanlış cevaplanlar
+  let fleeCount = 0;
 
   let answeredQuestionIds = [];
   let collection = [];
@@ -30,14 +32,31 @@ questions = window.QUESTIONS;
   let runPower = 2;
 
   function checkGameCompletion() {
-    const allQuestionsAnswered = answeredQuestionIds.length >= questions.length;
+    const totalQuestions = questions.length;
+    const totalAnswered = answeredQuestionIds.length;
+    const correctAnswers = correctlyAnsweredQuestionIds.length;
+    const incorrectAnswers = incorrectlyAnsweredQuestionIds.length;
 
-    if (allQuestionsAnswered) {
-      triggerGameCompletion(allQuestionsAnswered);
+    const allQuestionsCompleted = totalAnswered >= totalQuestions;
+
+    const successRate = totalAnswered > 0 ? (correctAnswers / totalAnswered) * 100 : 0;
+
+    console.log("Game Progress:", {
+      totalQuestions,
+      answered: totalAnswered,
+      correct: correctAnswers,
+      incorrect: incorrectAnswers,
+      fled: fleeCount,
+      successRate: successRate.toFixed(1) + "%"
+    });
+
+    if (allQuestionsCompleted) {
+      console.log("GAME COMPLETION TRIGGERED!");
+      triggerGameCompletion(true, successRate, correctAnswers, incorrectAnswers, fleeCount);
     }
   }
 
-  function showCompletionMessage(type, bonus, ballsBonus) {
+  function showCompletionMessage(type, bonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount) {
     const gameOverPanel = document.querySelector("#gameOver .panel");
     if (!gameOverPanel) return;
 
@@ -56,15 +75,22 @@ questions = window.QUESTIONS;
     border-radius: 8px;
     text-align: center;
     font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
+    font-size: 9px;
     animation: completionGlow 2s ease-in-out infinite;
   `;
 
+    const totalQuestions = correctCount + incorrectCount;
+    const successRate = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(1) : "0";
+
     completionDiv.innerHTML = `
-    <div style="margin-bottom: 8px; font-size: 12px; font-weight: bold;">${type}!</div>
-    <div style="margin-bottom: 5px;">Completion Bonus: +${bonus} points</div>
+    <div style="margin-bottom: 8px; font-size: 11px; font-weight: bold;">${type}</div>
+    <div style="margin-bottom: 5px;">✓ Correct Answers: ${correctCount}/${totalQuestions} (${successRate}%)</div>
+    <div style="margin-bottom: 5px;">✗ Wrong Answers: ${incorrectCount}</div>
+    ${fleeCount > 0 ? `<div style="margin-bottom: 5px;">🏃 Fled Battles: ${fleeCount}</div>` : ''}
+    <div style="margin-bottom: 5px;">Performance Bonus: +${bonus} points</div>
     ${ballsBonus > 0 ? `<div style="margin-bottom: 5px;">Balls Bonus: +${ballsBonus} points</div>` : ''}
-    <div style="color: #ff0080; font-weight: bold;">🎉 CONGRATULATIONS! 🎉</div>
+    ${fleePenalty > 0 ? `<div style="margin-bottom: 5px;">Flee Penalty: -${fleePenalty} points</div>` : ''}
+    <div style="color: #ff0080; font-weight: bold;">🎉 GAME COMPLETE! 🎉</div>
   `;
 
     const h2 = gameOverPanel.querySelector("h2");
@@ -73,26 +99,46 @@ questions = window.QUESTIONS;
     }
   }
 
-
-  function triggerGameCompletion(questionsCompleted) {
+  function triggerGameCompletion(questionsCompleted, successRate, correctCount, incorrectCount, fleeCount) {
     state = "gameover";
     document.body.classList.remove("in-battle");
 
     let completionBonus = 0;
     let completionType = "";
+    let performanceGrade = "";
 
     if (questionsCompleted) {
-      completionBonus = 5000;
-      completionType = "PERFECT COMPLETION";
+      // Performance grading system
+      if (successRate >= 90) {
+        performanceGrade = "PERFECT COMPLETION";
+        completionBonus = 5000;
+      } else if (successRate >= 75) {
+        performanceGrade = "EXCELLENT PERFORMANCE";
+        completionBonus = 3500;
+      } else if (successRate >= 60) {
+        performanceGrade = "GOOD PERFORMANCE";
+        completionBonus = 2500;
+      } else if (successRate >= 40) {
+        performanceGrade = "FAIR PERFORMANCE";
+        completionBonus = 1500;
+      } else {
+        performanceGrade = "POOR PERFORMANCE";
+        completionBonus = 500;
+      }
+
+      completionType = `${performanceGrade} (${successRate.toFixed(1)}%)`;
     }
 
     const ballsBonus = balls * 50;
+
+    // Flee penalty
+    const fleePenalty = fleeCount * 100;
 
     const distance = score;
     const mult = runMaxLives === 1 && runPower === 1 ? 2.0 :
       (runMaxLives === 1 && runPower === 2) || (runMaxLives === 2 && runPower === 1) ? 1.5 : 1.0;
     const base = distance * 10 + capturesRun * 80;
-    const penalty = lostBattlesRun * 40;
+    const penalty = lostBattlesRun * 40 + fleePenalty;
     const runScore = Math.max(0, Math.round(((base - penalty) + completionBonus + ballsBonus) * mult));
 
     let bestScoreVal = Number(localStorage.getItem("angryflappy_bestscore") || 0);
@@ -109,8 +155,13 @@ questions = window.QUESTIONS;
 
       const gameOverTitle = document.querySelector("#gameOver h2");
       if (gameOverTitle) {
-        gameOverTitle.textContent = completionType;
-        gameOverTitle.style.color = "#00ff00"; // Yeşil renk
+        // Color based on performance
+        let titleColor = "#00ff00"; // Green for good performance
+        if (successRate < 60) titleColor = "#ffaa00"; // Orange for fair
+        if (successRate < 40) titleColor = "#ff4444"; // Red for poor
+
+        gameOverTitle.textContent = performanceGrade;
+        gameOverTitle.style.color = titleColor;
       }
     } catch (e) { }
 
@@ -120,12 +171,10 @@ questions = window.QUESTIONS;
       document.getElementById("bestScoreVal").textContent = String(bestScoreVal);
     } catch (e) { }
 
-    showCompletionMessage(completionType, completionBonus, ballsBonus);
+    showCompletionMessage(completionType, completionBonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount);
 
     renderCollectionPaged(dexEl);
     updateSendButtons();
-
-
 
     gameOverEl.classList.add("show");
   }
@@ -133,15 +182,19 @@ questions = window.QUESTIONS;
   function loadCollection() {
     try {
       const data = JSON.parse(localStorage.getItem("angryflappy_collection") || "[]");
+      // Eski format kontrolü - string array'ı obje array'ına çevir
       if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
-        return data.map(id => ({ id, amount: 1 }));
+        const converted = data.map(id => ({ id, amount: 1 }));
+        // Converted data'yı hemen kaydet
+        localStorage.setItem("angryflappy_collection", JSON.stringify(converted));
+        console.log("Collection converted from string to object format");
+        return converted;
       }
       return data;
     } catch (e) {
       return [];
     }
   }
-
   function saveCollection(collection) {
     localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
   }
@@ -1087,6 +1140,21 @@ questions = window.QUESTIONS;
     if (pauseBtn) {
       pauseBtn.style.display = "none";
     }
+
+    anim.monsterLungeT = 0;
+    anim.playerLungeT = 0;
+    anim.hurtFlashT = 0;
+    anim.worldHurtT = 0;
+    anim.capture.active = false;
+    anim.capture.phase = "idle";
+    anim.capture.success = false; // ← Bu çok önemli!
+    anim.capture.t0 = 0;
+    anim.capture.t1 = 0;
+    anim.capture.holdUntil = 0;
+    anim.capture.fromX = 0;
+    anim.capture.fromY = 0;
+    anim.capture.toX = 0;
+    anim.capture.toY = 0;
 
     const hudWrap = document.getElementById("hudWrap");
     if (hudWrap) hudWrap.style.display = "none";
@@ -2295,7 +2363,6 @@ questions = window.QUESTIONS;
     }
   }
 
-  // ---------- Turn buttons ----------
   answerBtn.addEventListener("click", (e) => {
     e.preventDefault();
     if (!battle) return;
@@ -2316,17 +2383,35 @@ questions = window.QUESTIONS;
       );
     }
 
-    if (isCorrect) {
+    // TRACKING - Soru ID'sini uygun array'e ekle
+    if (qObj) {
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
 
+      if (isCorrect) {
+        if (!correctlyAnsweredQuestionIds.includes(qObj.id)) {
+          correctlyAnsweredQuestionIds.push(qObj.id);
+        }
+      } else {
+        if (!incorrectlyAnsweredQuestionIds.includes(qObj.id)) {
+          incorrectlyAnsweredQuestionIds.push(qObj.id);
+        }
+      }
+    }
+
+    if (isCorrect) {
       battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
       fillBattleMenuDetails(battle.mon, battle.hp, activeUnit.power);
 
       if (battle.hp <= 0) {
         captureHint.textContent = "Monster defeated! Automatic capture...";
         captureHint.className = "hint capture-correct";
+        if (lastBattledMonster) {
+          lastBattledMonster.x = -9999;
+          lastBattledMonster.y = -9999;
+        }
+
         handleCaptureSuccess();
         return;
       }
@@ -2344,16 +2429,11 @@ questions = window.QUESTIONS;
       setTimeout(() => battleAnswer.focus(), 30);
 
     } else {
-      if (qObj && !answeredQuestionIds.includes(qObj.id)) {
-        answeredQuestionIds.push(qObj.id);
-      }
-
       captureHint.textContent = "Wrong answer! Battle ended.";
       captureHint.className = "hint capture-wrong";
 
       setTimeout(() => {
-        console.log("answer button calls")
-
+        console.log("Wrong answer - ending battle");
         showFleeAndEnd(false, false);
       }, 500);
       return;
@@ -2365,7 +2445,7 @@ questions = window.QUESTIONS;
 
   fleeBtn.addEventListener("click", () => {
     ++lostBattlesRun;
-    console.log("flee button calls");
+    fleeCount++;
     showFleeAndEnd(true);
   });
 
@@ -2406,11 +2486,21 @@ questions = window.QUESTIONS;
         if (success) {
           const id = battle.mon.id;
 
-          // AMOUNT SİSTEMİ - Aynı monster varsa amount arttır
-          const existing = collection.find(item => item.id === id);
+          let existing = collection.find(item => {
+            if (typeof item === 'object' && item.id === id) return true;
+            if (typeof item === 'string' && item === id) return true;
+            return false;
+          });
+
           if (existing) {
-            existing.amount += 1;
-            console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
+            if (typeof existing === 'string') {
+              const index = collection.indexOf(existing);
+              collection[index] = { id: existing, amount: 2 }; // 1 + 1 = 2
+              console.log(`${battle.mon.name} converted to object format with amount 2`);
+            } else if (typeof existing === 'object') {
+              existing.amount += 1;
+              console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
+            }
           } else {
             collection.push({ id, amount: 1 });
             console.log(`${battle.mon.name} captured for the first time`);
@@ -2421,6 +2511,11 @@ questions = window.QUESTIONS;
             renderCollectionPaged(dexStart);
             renderCollectionPaged(dexEl);
           } catch (e) { }
+
+          if (lastBattledMonster) {
+            lastBattledMonster.x = -9999;
+            lastBattledMonster.y = -9999;
+          }
 
           capturesRun++;
           if (capturesRun > bestCaptInRun) {
@@ -2458,7 +2553,6 @@ questions = window.QUESTIONS;
       }
     }, 500);
   };
-
 
   function enemyAttack() {
     if (!battle) return;
@@ -2624,9 +2718,13 @@ questions = window.QUESTIONS;
       localStorage.removeItem("angryflappy_bestscore");
 
       availableMonsters = monsters.slice();
-      collidedMonsterIds.length = 0; // Array'i boşalt
-      answeredQuestionIds.length = 0; // Array'i boşalt
+      collidedMonsterIds.length = 0;
+      answeredQuestionIds.length = 0;
       selectedMonsterId = null;
+      answeredQuestionIds.length = 0;
+      correctlyAnsweredQuestionIds = [];
+      incorrectlyAnsweredQuestionIds = [];
+      fleeCount = 0;
 
       // Yeni oyun başlat
       startNewGame();
@@ -2678,9 +2776,13 @@ questions = window.QUESTIONS;
     bird.y = H / 2;
     bird.vy = 0;
     bird.tilt = 0;
-    bird.invulnUntil = Date.now() + 3000; // 3 saniye invulnerability
+    bird.invulnUntil = Date.now() + 3000;
     bird.trail = [];
 
+    answeredQuestionIds.length = 0;
+    correctlyAnsweredQuestionIds = [];
+    incorrectlyAnsweredQuestionIds = [];
+    fleeCount = 0;
     anim.monsterLungeT = 0;
     anim.playerLungeT = 0;
     anim.hurtFlashT = 0;
