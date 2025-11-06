@@ -9,9 +9,144 @@ questions = window.QUESTIONS;
   let H = canvas.height;
   let availableMonsters = monsters.slice();
   let collidedMonsterIds = [];
-  let answeredQuestionIds = [];
   let currentProfile = {}
   let ballSize = 40;
+
+
+  let answeredQuestionIds = [];
+  let collection = [];
+  let state = "start";
+  let score = 0;
+  let lives = 2;
+  let capturesRun = 0;
+  let lostBattlesRun = 0;
+  let balls = Number(localStorage.getItem("angryflappy_balls") || 0);
+  let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false, mon: null };
+  let high = Number(localStorage.getItem("angryflappy_high") || 0);
+  let bestCaptInRun = Number(
+    localStorage.getItem("angryflappy_bestcaprun") || 0
+  );
+  let runMaxLives = 2;
+  let runPower = 2;
+
+  function checkGameCompletion() {
+    const allQuestionsAnswered = answeredQuestionIds.length >= questions.length;
+
+    if (allQuestionsAnswered) {
+      triggerGameCompletion(allQuestionsAnswered);
+    }
+  }
+
+  function showCompletionMessage(type, bonus, ballsBonus) {
+    const gameOverPanel = document.querySelector("#gameOver .panel");
+    if (!gameOverPanel) return;
+
+    const existingMsg = gameOverPanel.querySelector(".completion-message");
+    if (existingMsg) {
+      existingMsg.remove();
+    }
+
+    const completionDiv = document.createElement("div");
+    completionDiv.className = "completion-message";
+    completionDiv.style.cssText = `
+    background: linear-gradient(45deg, #00ff00, #00ffff);
+    color: #000;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    animation: completionGlow 2s ease-in-out infinite;
+  `;
+
+    completionDiv.innerHTML = `
+    <div style="margin-bottom: 8px; font-size: 12px; font-weight: bold;">${type}!</div>
+    <div style="margin-bottom: 5px;">Completion Bonus: +${bonus} points</div>
+    ${ballsBonus > 0 ? `<div style="margin-bottom: 5px;">Balls Bonus: +${ballsBonus} points</div>` : ''}
+    <div style="color: #ff0080; font-weight: bold;">🎉 CONGRATULATIONS! 🎉</div>
+  `;
+
+    const h2 = gameOverPanel.querySelector("h2");
+    if (h2) {
+      h2.insertAdjacentElement("afterend", completionDiv);
+    }
+  }
+
+
+  function triggerGameCompletion(questionsCompleted) {
+    state = "gameover";
+    document.body.classList.remove("in-battle");
+
+    let completionBonus = 0;
+    let completionType = "";
+
+    if (questionsCompleted) {
+      completionBonus = 5000;
+      completionType = "PERFECT COMPLETION";
+    }
+
+    const ballsBonus = balls * 50;
+
+    const distance = score;
+    const mult = runMaxLives === 1 && runPower === 1 ? 2.0 :
+      (runMaxLives === 1 && runPower === 2) || (runMaxLives === 2 && runPower === 1) ? 1.5 : 1.0;
+    const base = distance * 10 + capturesRun * 80;
+    const penalty = lostBattlesRun * 40;
+    const runScore = Math.max(0, Math.round(((base - penalty) + completionBonus + ballsBonus) * mult));
+
+    let bestScoreVal = Number(localStorage.getItem("angryflappy_bestscore") || 0);
+    bestScoreVal = Math.max(bestScoreVal, runScore);
+    localStorage.setItem("angryflappy_bestscore", String(bestScoreVal));
+
+    high = Math.max(high, score);
+    localStorage.setItem("angryflappy_high", String(high));
+
+    try {
+      document.getElementById("prevDistance").textContent = `${distance} m`;
+      document.getElementById("prevCaptures").textContent = String(capturesRun);
+      document.getElementById("prevScore").textContent = String(runScore);
+
+      const gameOverTitle = document.querySelector("#gameOver h2");
+      if (gameOverTitle) {
+        gameOverTitle.textContent = completionType;
+        gameOverTitle.style.color = "#00ff00"; // Yeşil renk
+      }
+    } catch (e) { }
+
+    try {
+      document.getElementById("bestDistance").textContent = `${high} m`;
+      document.getElementById("bestCaptures").textContent = String(bestCaptInRun);
+      document.getElementById("bestScoreVal").textContent = String(bestScoreVal);
+    } catch (e) { }
+
+    showCompletionMessage(completionType, completionBonus, ballsBonus);
+
+    renderCollectionPaged(dexEl);
+    updateSendButtons();
+
+
+
+    gameOverEl.classList.add("show");
+  }
+
+  function loadCollection() {
+    try {
+      const data = JSON.parse(localStorage.getItem("angryflappy_collection") || "[]");
+      if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
+        return data.map(id => ({ id, amount: 1 }));
+      }
+      return data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCollection(collection) {
+    localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
+  }
+
+  collection = loadCollection();
 
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
@@ -52,7 +187,6 @@ questions = window.QUESTIONS;
   const battleToi = document.getElementById("battleToi");
 
   let playerPower = 2;
-  let activeUnit = { name: "", hpMax: 2, power: 2, isMonster: false, mon: null };
 
   window.addEventListener("af:login:done", () => {
     let displayName = activeUnit.name;
@@ -166,7 +300,7 @@ questions = window.QUESTIONS;
     }
 
     if (state === "battle") {
-      endBattle(false);
+      endBattle(false, false);
     }
 
     state = "start";
@@ -227,15 +361,8 @@ questions = window.QUESTIONS;
     camY: 0.65,
   };
 
-  let state = "start";
   let rng = mulberry32(Date.now() % 4294967295);
   let last = performance.now();
-
-  let high = Number(localStorage.getItem("angryflappy_high") || 0);
-  let bestCaptInRun = Number(
-    localStorage.getItem("angryflappy_bestcaprun") || 0
-  );
-  let balls = Number(localStorage.getItem("angryflappy_balls") || 0);
 
   // Sync from selected profile after login
   try {
@@ -280,15 +407,14 @@ questions = window.QUESTIONS;
       } catch (e) { }
     });
   } catch (e) { }
-  let score = 0;
-  let lives = activeUnit.hpMax;
-  let capturesRun = 0;
-  let lostBattlesRun = 0;
-  let runMaxLives = activeUnit.hpMax;
-  let runPower = activeUnit.power;
+  lives = activeUnit.hpMax;
+  capturesRun = 0;
+  lostBattlesRun = 0;
+  runMaxLives = activeUnit.hpMax;
+  runPower = activeUnit.power;
 
   // Collection
-  let collection = loadCollection();
+  collection = loadCollection();
 
   const CAPTURE_ATTEMPT_BONUS = 0.15; // 15%
   let captureAttemptsInBattle = 0;
@@ -296,27 +422,37 @@ questions = window.QUESTIONS;
   function updateMonsterSelect(selectEl) {
     if (!selectEl) return;
     while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
+
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = "-- Aucun — (jouer sans monstre)";
     selectEl.appendChild(placeholder);
+
     const list = (collection || [])
       .slice()
-      .map((id) => {
+      .map((item) => {
+        // Yeni format: { id, amount }
+        const id = item.id || item; // Geriye uyumluluk için
+        const amount = item.amount || 1;
+
         const [c, f, k] = id.split("-").map((n) => parseInt(n));
-        const name = monsterName(c, f, k);
-        const hp = hpForId(c, f, k);
-        const power = powerForId(c, f, k);
-        return { id, name, hp, power };
+        const monsterObj = window.MONSTERS.find(m => m.id === id);
+        const name = monsterObj ? monsterObj.name : "Unknown";
+        const hp = monsterObj ? (monsterObj.stats?.maxhp ?? monsterObj.stats?.hp ?? 1) : 1;
+        const power = monsterObj ? (monsterObj.stats?.power ?? 1) : 1;
+
+        return { id, name, hp, power, amount };
       })
+      .filter(m => m.amount > 0) // Amount 0 olanları gösterme
       .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+
     for (const m of list) {
       const opt = document.createElement("option");
       opt.value = m.id;
-      opt.textContent = `${m.name} — PV ${m.hp} • Puissance ${m.power}`;
+      opt.textContent = `${m.name} (x${m.amount}) — PV ${m.hp} • ⚡ ${m.power}`;
       if (selectedMonsterId && selectedMonsterId === m.id) opt.selected = true;
       selectEl.appendChild(opt);
     }
+
     selectEl.onchange = (e) => {
       selectedMonsterId = e.target.value || null;
       updateSendButtons();
@@ -338,9 +474,7 @@ questions = window.QUESTIONS;
       return [];
     }
   }
-  function saveCollection(collection) {
-    localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
-  }
+
   function ballIconLossSVG() {
     return `<svg aria-hidden="true" class="ballIcon" height="36" viewBox="0 0 64 64" width="36">
 <defs>
@@ -381,12 +515,7 @@ questions = window.QUESTIONS;
   function capFirst(s) {
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
-  function monsterName(catIdx, formIdx, colorIdx) {
-    const cat = Categories[catIdx];
 
-    const name = takeFirst3(form) + takeFirst3(cat) + takeLast3(col);
-    return capFirst(name);
-  }
 
   function hashStr(s) {
     let h = 0;
@@ -993,13 +1122,22 @@ questions = window.QUESTIONS;
       updateHUD();
     }
 
+    if (lastBattledMonster) {
+      const idx = monsters.indexOf(lastBattledMonster);
+      if (idx !== -1) {
+        lastBattledMonster.x = -9999;
+        lastBattledMonster.y = -9999;
+        console.log("Monster moved off-screen after flee");
+      }
+    }
+
     setTimeout(() => {
       console.log("Ending battle after flee/wrong answer");
       endBattle(false, false);
     }, 500);
   }
 
-  function endBattle(consumedLife) {
+  function endBattle(consumedLife, wasCaptured) {
     console.log("endBattle called, state before:", state);
 
     const hudWrap = document.getElementById("hudWrap");
@@ -1017,25 +1155,15 @@ questions = window.QUESTIONS;
       updateHUD();
     }
 
-    if (lastBattledMonster && wasCaptured) {
-      const idx = monsters.indexOf(lastBattledMonster);
-      if (idx !== -1) {
-        monsters.splice(idx, 1);
-        console.log("Monster removed from array - captured");
-      }
-    } else if (lastBattledMonster) {
-      console.log("Monster escaped battle - staying in array");
-    }
-
     lastBattledMonster = null;
 
     battle = null;
     captureAttemptsInBattle = 0;
 
     state = "playing";
-    resumeAt = performance.now() + 500;
+    resumeAt = performance.now() + 1000;
 
-    bird.invulnUntil = Date.now() + 500;
+    bird.invulnUntil = Date.now() + 2000;
 
     if (pauseBtn && state === "playing") {
       pauseBtn.style.display = "block";
@@ -1322,6 +1450,17 @@ questions = window.QUESTIONS;
       control.hold = false;
     }
 
+    anim.monsterLungeT = 0;
+    anim.playerLungeT = 0;
+    anim.hurtFlashT = 0;
+    anim.worldHurtT = 0;
+    anim.capture.active = false;
+    anim.capture.phase = "idle";
+    anim.capture.success = false;
+    anim.capture.t0 = 0;
+    anim.capture.t1 = 0;
+    anim.capture.holdUntil = 0;
+
     if (window.innerWidth <= 480) {
       bird.x = W * 0.13;
     } else if (window.innerWidth <= 768) {
@@ -1483,6 +1622,9 @@ questions = window.QUESTIONS;
   function update(dt) {
     if (state !== "playing" || isPaused) return;
     if (performance.now() < resumeAt) return;
+
+    checkGameCompletion();
+
     const dx = S.speed * dt;
     world.scrollX += dx;
 
@@ -1556,10 +1698,9 @@ questions = window.QUESTIONS;
     }
     items = items.filter((it) => it.x > -100);
 
-    // Monsters (AI untouched)
     monsterTimer -= dt;
     if (monsterTimer <= 0) {
-      if (answeredQuestionIds.length < questions.length) { // <-- ekle
+      if (answeredQuestionIds.length < questions.length) {
         const newMonster = createMonster();
         if (newMonster) {
           monsters.push(newMonster);
@@ -1689,6 +1830,10 @@ questions = window.QUESTIONS;
     while (bird.trail.length > 20) bird.trail.shift();
   }
 
+
+
+
+
   function drawBirdTrail(ctx, bird) {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -1714,6 +1859,32 @@ questions = window.QUESTIONS;
   }
 
   function triggerGameOver() {
+    if (activeUnit && activeUnit.isMonster && activeUnit.monster) {
+      const monsterId = activeUnit.monster.id;
+      const collectionItem = collection.find(item => item.id === monsterId);
+
+      if (collectionItem && collectionItem.amount > 0) {
+        collectionItem.amount -= 1;
+        console.log(`${activeUnit.monster.name} amount decreased to ${collectionItem.amount}`);
+
+        if (collectionItem.amount <= 0) {
+          const index = collection.findIndex(item => item.id === monsterId);
+          if (index !== -1) {
+            collection.splice(index, 1);
+            console.log(`${activeUnit.monster.name} removed from collection (amount reached 0)`);
+          }
+        }
+
+        saveCollection(collection);
+
+        try {
+          renderCollectionPaged(dexStart);
+          renderCollectionPaged(dexEl);
+          updateMonsterSelect(document.getElementById("monsterSelectStart"));
+        } catch (e) { }
+      }
+    }
+
     if (activeUnit && activeUnit.isMonster) {
       showCorruptionChoice(activeUnit.monster);
       return;
@@ -1753,7 +1924,6 @@ questions = window.QUESTIONS;
       );
     } catch (e) { }
 
-    // If we lost WITHOUT a monster, display ball-loss overlay first
     try {
       if (!activeUnit || !activeUnit.isMonster) {
         const lost = Math.floor(balls * 0.25);
@@ -1769,6 +1939,12 @@ questions = window.QUESTIONS;
     renderCollectionPaged(dexEl);
     updateSendButtons();
     gameOverEl.classList.add("show");
+
+    if (battle) {
+      endBattle(true, false);
+    } else {
+      triggerGameOverReal();
+    }
   }
 
   function showCorruptionChoice(mon) {
@@ -2076,6 +2252,8 @@ questions = window.QUESTIONS;
               localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
             }
             anim.capture.active = false;
+            console.log("draw battle calls")
+
             showFleeAndEnd(false);
           } else {
             anim.capture.active = false;
@@ -2174,7 +2352,9 @@ questions = window.QUESTIONS;
       captureHint.className = "hint capture-wrong";
 
       setTimeout(() => {
-        showFleeAndEnd(false);
+        console.log("answer button calls")
+
+        showFleeAndEnd(false, false);
       }, 500);
       return;
     }
@@ -2185,6 +2365,7 @@ questions = window.QUESTIONS;
 
   fleeBtn.addEventListener("click", () => {
     ++lostBattlesRun;
+    console.log("flee button calls");
     showFleeAndEnd(true);
   });
 
@@ -2224,42 +2405,60 @@ questions = window.QUESTIONS;
       if (battle && battle.mon) {
         if (success) {
           const id = battle.mon.id;
-          if (!collection.includes(id)) {
-            collection.push(id);
-            saveCollection(collection);
-            try {
-              renderCollectionPaged(dexStart);
-              renderCollectionPaged(dexEl);
-            } catch (e) { }
+
+          // AMOUNT SİSTEMİ - Aynı monster varsa amount arttır
+          const existing = collection.find(item => item.id === id);
+          if (existing) {
+            existing.amount += 1;
+            console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
+          } else {
+            collection.push({ id, amount: 1 });
+            console.log(`${battle.mon.name} captured for the first time`);
           }
+
+          saveCollection(collection);
+          try {
+            renderCollectionPaged(dexStart);
+            renderCollectionPaged(dexEl);
+          } catch (e) { }
+
           capturesRun++;
           if (capturesRun > bestCaptInRun) {
             bestCaptInRun = capturesRun;
             localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
           }
+
           const extraHp = Math.floor(Math.random() * 2) + 1;
           activeUnit.hpMax += extraHp;
           lives = activeUnit.hpMax;
           updateHUD();
+
           captureHint.textContent = `Monster captured! +${extraHp} HP`;
           captureHint.className = "hint capture-correct";
 
-          // YAKALANDI - monster'ı sil
           setTimeout(() => {
-            endBattle(false, true); // wasCaptured = true
-          }, 500);
+            endBattle(false, true);
+            setTimeout(() => {
+              checkGameCompletion();
+            }, 100);
+          }, 1500);
+
         } else {
           captureHint.textContent = "Capture failed!";
           captureHint.className = "hint capture-wrong";
+          if (lastBattledMonster) {
+            lastBattledMonster.x = -9999;
+            lastBattledMonster.y = -9999;
+          }
 
-          // YAKALANAMADI - monster'ı silme
           setTimeout(() => {
-            endBattle(false, false); // wasCaptured = false
+            endBattle(false, false);
           }, 500);
         }
       }
     }, 500);
   };
+
 
   function enemyAttack() {
     if (!battle) return;
@@ -2269,6 +2468,8 @@ questions = window.QUESTIONS;
     anim.hurtFlashT = performance.now() + 160;
     if (lives <= 0.5) {
       ++lostBattlesRun;
+      console.log("enemy attack calls")
+
       showFleeAndEnd(false);
       return;
     }
@@ -2276,6 +2477,7 @@ questions = window.QUESTIONS;
       lives = 0.5;
       updateHUD();
       ++lostBattlesRun;
+      console.log("enemy attack calls");
       showFleeAndEnd(false);
       return;
     }
@@ -2290,19 +2492,33 @@ questions = window.QUESTIONS;
     const scope = container.closest(".panel") || document;
     const bySel = scope.querySelector("#sortByStart, #sortBy");
     const dirSel = scope.querySelector("#sortDirStart, #sortDir");
+
     function computeList() {
       const by = bySel ? bySel.value : "alpha";
       const dir = dirSel ? dirSel.value : "asc";
 
-      const arr = list.map((id) => {
-        const monsterObj = availableMonsters.find(m => m.id === id);
-        const [c, f, k] = id.split("-").map((n) => parseInt(n));
-        const name = monsterObj ? monsterObj.name : monsterName(c, f, k);
-        const hp = monsterObj ? monsterObj.stats.maxhp ?? monsterObj.stats.hp : hpForId(c, f, k);
-        const power = monsterObj ? monsterObj.stats.power : powerForId(c, f, k);
-        const img = monsterObj ? monsterObj.img : "assets/default.png";
-        return { id, c, f, k, name, hp, power, img };
-      });
+      const arr = list
+        .map((item) => {
+          // Yeni format: { id, amount }
+          const id = item.id || item; // Geriye uyumluluk
+          const amount = item.amount || 1;
+
+          const monsterObj = window.MONSTERS.find(m => m.id === id);
+          if (!monsterObj) {
+            console.warn("Monster not found for ID:", id);
+            return null;
+          }
+
+          const [c, f, k] = id.split("-").map((n) => parseInt(n));
+          const name = monsterObj.name;
+          const hp = monsterObj.stats?.maxhp ?? monsterObj.stats?.hp ?? 1;
+          const power = monsterObj.stats?.power ?? 1;
+          const img = monsterObj.img;
+
+          return { id, c, f, k, name, hp, power, img, amount };
+        })
+        .filter(item => item !== null && item.amount > 0); // Amount 0 olanları gösterme
+
       arr.sort((a, b) => {
         let v = 0;
         if (by === "alpha") {
@@ -2316,6 +2532,7 @@ questions = window.QUESTIONS;
       });
       return arr;
     }
+
     function renderAll() {
       container.innerHTML = "";
       const arr = computeList();
@@ -2326,20 +2543,11 @@ questions = window.QUESTIONS;
         container.appendChild(p);
         return;
       }
+
       for (const e of arr) {
-        const mon = {
-          id: e.id,
-          name: e.name,
-          catIdx: e.c,
-          formIdx: e.f,
-          colorIdx: e.k,
-          r: 18,
-          maxhp: e.hp,
-          power: e.power,
-          img: e.img,
-        };
         const card = document.createElement("div");
         card.className = "card selectable";
+
         const thumb = document.createElement("div");
         thumb.className = "thumb";
         const img = document.createElement("img");
@@ -2347,20 +2555,24 @@ questions = window.QUESTIONS;
         img.width = 56;
         img.height = 56;
         img.style.imageRendering = "pixelated";
-        img.src = mon.img;
+        img.src = e.img || "assets/placeholder.png";
         thumb.appendChild(img);
+
         const box = document.createElement("div");
         const title = document.createElement("div");
         title.className = "title";
-        title.textContent = e.name;
+        title.textContent = `${e.name} (x${e.amount})`; // Amount göster
+
         const meta = document.createElement("div");
         meta.className = "meta";
         meta.textContent = `HP: ${e.hp} • Power: ${e.power} • Level: ${e.hp + e.power}`;
+
         box.appendChild(title);
         box.appendChild(meta);
         card.appendChild(thumb);
         card.appendChild(box);
         container.appendChild(card);
+
         card.addEventListener("click", () => {
           selectedMonsterId = e.id;
           for (const n of container.querySelectorAll(".card"))
@@ -2370,6 +2582,7 @@ questions = window.QUESTIONS;
         });
       }
     }
+
     renderAll();
     if (bySel) bySel.onchange = renderAll;
     if (dirSel) dirSel.onchange = renderAll;
@@ -2389,6 +2602,176 @@ questions = window.QUESTIONS;
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
+
+
+  const startOverBtn = document.getElementById("startOverBtn");
+  if (startOverBtn) {
+    startOverBtn.addEventListener("click", () => {
+      console.log("Start Over clicked - Complete reset");
+
+      gameOverEl.classList.remove("show");
+      if (corruptOverlay) corruptOverlay.classList.remove("show");
+
+      collection.length = 0; // Array'i boşalt
+      localStorage.removeItem("angryflappy_collection");
+      saveCollection(collection);
+
+      high = 0;
+      bestCaptInRun = 0;
+
+      localStorage.removeItem("angryflappy_high");
+      localStorage.removeItem("angryflappy_bestcaprun");
+      localStorage.removeItem("angryflappy_bestscore");
+
+      availableMonsters = monsters.slice();
+      collidedMonsterIds.length = 0; // Array'i boşalt
+      answeredQuestionIds.length = 0; // Array'i boşalt
+      selectedMonsterId = null;
+
+      // Yeni oyun başlat
+      startNewGame();
+
+      // UI'ları güncelle
+      try {
+        renderCollectionPaged(dexStart);
+        renderCollectionPaged(dexEl);
+        updateMonsterSelect(document.getElementById("monsterSelectStart"));
+      } catch (e) {
+        console.log("UI update error:", e);
+      }
+
+      console.log("Complete game reset - All data cleared");
+    });
+  }
+
+  // IIFE içinde (satır 2650 civarında, Start Over button'dan önce) bu fonksiyonu ekle:
+
+  function startNewGame() {
+    gameOverEl.classList.remove("show");
+    if (corruptOverlay) corruptOverlay.classList.remove("show");
+
+    const completionMsg = document.querySelector(".completion-message");
+    if (completionMsg) {
+      completionMsg.remove();
+    }
+
+    const gameOverTitle = document.querySelector("#gameOver h2");
+    if (gameOverTitle) {
+      gameOverTitle.textContent = "GAME OVER";
+      gameOverTitle.style.color = "";
+    }
+
+    if (pauseOverlay) {
+      pauseOverlay.classList.remove("show");
+    }
+
+    selectedMonsterId = null;
+
+    if (window.innerWidth <= 480) {
+      bird.x = W * 0.13;
+    } else if (window.innerWidth <= 768) {
+      bird.x = W * 0.15;
+    } else {
+      bird.x = 220;
+    }
+
+    bird.y = H / 2;
+    bird.vy = 0;
+    bird.tilt = 0;
+    bird.invulnUntil = Date.now() + 3000; // 3 saniye invulnerability
+    bird.trail = [];
+
+    anim.monsterLungeT = 0;
+    anim.playerLungeT = 0;
+    anim.hurtFlashT = 0;
+    anim.worldHurtT = 0;
+    anim.capture.active = false;
+    anim.capture.phase = "idle";
+    anim.capture.success = false;
+    anim.capture.t0 = 0;
+    anim.capture.t1 = 0;
+    anim.capture.holdUntil = 0;
+    anim.capture.fromX = 0;
+    anim.capture.fromY = 0;
+    anim.capture.toX = 0;
+    anim.capture.toY = 0;
+
+    if (typeof control !== "undefined") {
+      control.mode = "fly";
+      control.jumps = 0;
+      control.maxJumps = 4;
+      control.glide = control.glideMax = 1.0;
+      control.hold = false;
+      control.ceilingLockY = null;
+      control.fastFallTimer = 0;
+    }
+
+    let displayName = "Player";
+    try {
+      let currentProfile = null;
+
+      if (window.profile) {
+        currentProfile = window.profile;
+      }
+      else if (window.AF_SaveManager && window.AF_SaveManager.profile) {
+        currentProfile = window.AF_SaveManager.profile;
+      }
+      else {
+        currentProfile = JSON.parse(localStorage.getItem("profile") || "{}");
+      }
+
+      if (currentProfile && currentProfile.firstName) {
+        displayName = currentProfile.firstName;
+      } else {
+        displayName = "Player";
+      }
+    } catch (e) {
+      displayName = "Player";
+    }
+
+    activeUnit = {
+      name: displayName,
+      hpMax: S.maxLives,
+      power: playerPower,
+      isMonster: false,
+    };
+
+    score = 0;
+    lives = activeUnit.hpMax;
+    capturesRun = 0;
+    lostBattlesRun = 0;
+    runMaxLives = activeUnit.hpMax;
+    runPower = activeUnit.power;
+
+    pipes = [];
+    nextPipeX = 600;
+    monsterTimer = 0;
+    items = [];
+    itemTimer = 1.5;
+    world.scrollX = 0;
+    world.stars = null;
+    world.buildings = null;
+
+    battle = null;
+    captureAttemptsInBattle = 0;
+    lastBattledMonster = null;
+
+    state = "playing";
+
+    const hudWrap = document.getElementById("hudWrap");
+    if (hudWrap) {
+      hudWrap.style.display = "";
+    }
+
+    updateHUD();
+    updateSendButtons();
+
+    if (pauseBtn) {
+      pauseBtn.style.display = "block";
+    }
+
+    console.log("New game started");
+  }
 })();
 /* SPLASH */
 const splash = document.getElementById("splash");
