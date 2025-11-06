@@ -135,6 +135,7 @@ questions = window.QUESTIONS;
     if (!isPaused) return;
 
     isPaused = false;
+    console.log("Resuming game...");
 
     if (pauseOverlay) {
       pauseOverlay.classList.remove("show");
@@ -181,25 +182,29 @@ questions = window.QUESTIONS;
   }
 
   function onKeyDown(e) {
-    if (e.code === "Space" && state !== "battle") {
-      e.preventDefault();
-      handlePressDown();
-    }
+    console.log("Key pressed:", e.code, "State:", state); // Debug
 
-    if (e.code === "Escape") {
+
+    if (e.code === "Escape" || e.code === "ESC" || e.key === "Esc" || e.key === "esc") {
       e.preventDefault();
       console.log("ESC pressed, state:", state, "isPaused:", isPaused);
       if (state === "playing") {
         togglePause();
       } else if (state === "battle") {
+        console.log("ESC in battle, clicking flee");
         if (fleeBtn && !fleeBtn.disabled) {
           fleeBtn.click();
         }
       }
       return;
     }
-  }
 
+    if (e.code === "Space") {
+      if (state === "battle" || isPaused) return;
+      e.preventDefault();
+      handlePressDown();
+    }
+  }
   const S = {
     gravity: 1600,
     flap: 320,
@@ -955,7 +960,7 @@ questions = window.QUESTIONS;
     }
 
     const hudWrap = document.getElementById("hudWrap");
-    if (hudWrap) hudWrap.style.display = "none"; // HUD toggle on battle
+    if (hudWrap) hudWrap.style.display = "none";
     state = "battle";
     document.body.classList.add("in-battle");
     captureAttemptsInBattle = 0;
@@ -975,7 +980,10 @@ questions = window.QUESTIONS;
     setTimeout(() => battleAnswer.focus(), 40);
     captureBtn.disabled = !(battle.hp <= 0 && balls > 0);
   }
+
   function showFleeAndEnd(consumedLife) {
+    console.log("showFleeAndEnd called, consumedLife:", consumedLife);
+
     if (consumedLife) {
       if (lives > 0.5) {
         lives = roundToHalf(lives - 0.5);
@@ -984,35 +992,58 @@ questions = window.QUESTIONS;
       }
       updateHUD();
     }
+
     setTimeout(() => {
-      endBattle(false);
-    }, 420);
+      console.log("Ending battle after flee/wrong answer");
+      endBattle(false, false);
+    }, 500);
   }
+
   function endBattle(consumedLife) {
+    console.log("endBattle called, state before:", state);
+
     const hudWrap = document.getElementById("hudWrap");
-    if (hudWrap) hudWrap.style.display = ""; // HUD back after battle
-    battleOverlay.classList.remove("show");
+    if (hudWrap) hudWrap.style.display = "";
+
+    if (battleOverlay) {
+      battleOverlay.classList.remove("show");
+    }
+
     document.body.classList.remove("in-battle");
+
     if (consumedLife) {
       if (lives > 0.5) lives = roundToHalf(lives - 0.5);
       else lives = 0.5;
       updateHUD();
     }
-    if (lastBattledMonster) {
+
+    if (lastBattledMonster && wasCaptured) {
       const idx = monsters.indexOf(lastBattledMonster);
-      if (idx !== -1) monsters.splice(idx, 1);
-      lastBattledMonster = null;
+      if (idx !== -1) {
+        monsters.splice(idx, 1);
+        console.log("Monster removed from array - captured");
+      }
+    } else if (lastBattledMonster) {
+      console.log("Monster escaped battle - staying in array");
     }
+
+    lastBattledMonster = null;
+
     battle = null;
     captureAttemptsInBattle = 0;
-    resumeAt = performance.now() + 900;
+
     state = "playing";
-    bird.invulnUntil = Date.now() + 700;
+    resumeAt = performance.now() + 500;
+
+    bird.invulnUntil = Date.now() + 500;
 
     if (pauseBtn && state === "playing") {
       pauseBtn.style.display = "block";
     }
+
+    console.log("endBattle finished, state after:", state);
   }
+
   function neonBallSVG(size = 20) {
     return `<svg class="ballIcon" viewBox='0 0 64 64' width='${size}' height='${size}' aria-hidden='true'>
     <defs>
@@ -1104,11 +1135,7 @@ questions = window.QUESTIONS;
     e.preventDefault();
     handlePressDown();
   }
-  function onKeyDown(e) {
-    if (e.code === "Space") {
-      handlePressDown();
-    }
-  }
+
   function onPointerUp(e) {
     e.preventDefault();
     handlePressUp();
@@ -1120,13 +1147,8 @@ questions = window.QUESTIONS;
   }
   canvas.addEventListener("pointerdown", onPointerDown, { passive: false });
   canvas.addEventListener("pointerup", onPointerUp, { passive: false });
-  window.addEventListener("keydown", onKeyDown);
-  document.addEventListener("keydown", onKeyDown);
 
-  document.addEventListener("keydown", function (e) {
-    console.log("Key pressed:", e.code); // Debug için
-    onKeyDown(e);
-  });
+  window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
 
   if (startBtn) {
@@ -1459,7 +1481,7 @@ questions = window.QUESTIONS;
   }
 
   function update(dt) {
-    if (state !== "playing") return;
+    if (state !== "playing" || isPaused) return;
     if (performance.now() < resumeAt) return;
     const dx = S.speed * dt;
     world.scrollX += dx;
@@ -2109,24 +2131,36 @@ questions = window.QUESTIONS;
       return String(s).toLowerCase().replace(/\s+/g, "");
     }
 
-    if (qObj && normalize(userAnswer) === normalize(qObj.answer)) {
+    let isCorrect = false;
+    if (qObj && qObj.answer && Array.isArray(qObj.answer)) {
+      isCorrect = qObj.answer.some(answer =>
+        normalize(userAnswer) === normalize(answer)
+      );
+    }
+
+    if (isCorrect) {
       if (!answeredQuestionIds.includes(qObj.id)) {
         answeredQuestionIds.push(qObj.id);
       }
-      captureHint.className = "";
 
       battle.hp = Math.max(0, roundToHalf(battle.hp - activeUnit.power));
       fillBattleMenuDetails(battle.mon, battle.hp, activeUnit.power);
 
       if (battle.hp <= 0) {
-        captureHint.textContent = "Monster defeated!";
+        captureHint.textContent = "Monster defeated! Automatic capture...";
         captureHint.className = "hint capture-correct";
         handleCaptureSuccess();
         return;
       }
 
-      captureHint.textContent = "Correct! Attack!.";
+      captureHint.textContent = "Correct! You attacked the monster.";
       captureHint.className = "hint capture-correct";
+
+      setTimeout(() => {
+        captureHint.textContent = "";
+        captureHint.className = "hint";
+      }, 3000);
+
       questionText.textContent = pickQuestion();
       battleAnswer.value = "";
       setTimeout(() => battleAnswer.focus(), 30);
@@ -2138,14 +2172,16 @@ questions = window.QUESTIONS;
 
       captureHint.textContent = "Wrong answer! Battle ended.";
       captureHint.className = "hint capture-wrong";
+
       setTimeout(() => {
         showFleeAndEnd(false);
-      }, 900);
+      }, 500);
       return;
     }
 
     updateHUD();
   });
+
 
   fleeBtn.addEventListener("click", () => {
     ++lostBattlesRun;
@@ -2162,8 +2198,10 @@ questions = window.QUESTIONS;
     if (!battle || anim.capture.active) return;
     if (balls <= 0) {
       captureHint.textContent = "No balls left!";
+      captureHint.className = "hint capture-wrong";
       return;
     }
+
     balls -= 1;
     saveBalls();
     updateHUD();
@@ -2181,7 +2219,6 @@ questions = window.QUESTIONS;
     anim.capture.fromY = pos.playerScreenY - 30;
     anim.capture.toX = pos.enemyBaseX - 10;
     anim.capture.toY = pos.enemyBaseY - 10;
-    captureHint.textContent = `(${captureRate}%)`;
 
     setTimeout(() => {
       if (battle && battle.mon) {
@@ -2198,24 +2235,30 @@ questions = window.QUESTIONS;
           capturesRun++;
           if (capturesRun > bestCaptInRun) {
             bestCaptInRun = capturesRun;
-            localStorage.setItem(
-              "angryflappy_bestcaprun",
-              String(bestCaptInRun)
-            );
+            localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
           }
           const extraHp = Math.floor(Math.random() * 2) + 1;
           activeUnit.hpMax += extraHp;
           lives = activeUnit.hpMax;
           updateHUD();
           captureHint.textContent = `Monster captured! +${extraHp} HP`;
+          captureHint.className = "hint capture-correct";
+
+          // YAKALANDI - monster'ı sil
+          setTimeout(() => {
+            endBattle(false, true); // wasCaptured = true
+          }, 500);
         } else {
           captureHint.textContent = "Capture failed!";
+          captureHint.className = "hint capture-wrong";
+
+          // YAKALANAMADI - monster'ı silme
+          setTimeout(() => {
+            endBattle(false, false); // wasCaptured = false
+          }, 500);
         }
       }
-      setTimeout(() => {
-        showFleeAndEnd(false);
-      }, 900);
-    }, 900);
+    }, 500);
   };
 
   function enemyAttack() {
@@ -2337,7 +2380,6 @@ questions = window.QUESTIONS;
     const dt = Math.min(0.033, (ts - last) / 1000);
     last = ts;
     if (state === "playing") update(dt);
-    if (performance.now() < resumeAt) return;
     ctx.clearRect(0, 0, W, H);
     if (state === "battle") {
       drawBattleOverlays();
