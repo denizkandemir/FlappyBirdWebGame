@@ -56,7 +56,7 @@ questions = window.QUESTIONS;
     }
   }
 
-  function showCompletionMessage(type, bonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount) {
+  function showCompletionMessage(type, bonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount, totalScore) {
     const gameOverPanel = document.querySelector("#gameOver .panel");
     if (!gameOverPanel) return;
 
@@ -82,6 +82,14 @@ questions = window.QUESTIONS;
     const totalQuestions = correctCount + incorrectCount;
     const successRate = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(1) : "0";
 
+    // TOTAL SCORE HESAPLA - aynı mantık triggerGameCompletion'daki gibi
+    const distance = score;
+    const mult = runMaxLives === 1 && runPower === 1 ? 2.0 :
+      (runMaxLives === 1 && runPower === 2) || (runMaxLives === 2 && runPower === 1) ? 1.5 : 1.0;
+    const base = distance * 10 + capturesRun * 80;
+    const penalty = lostBattlesRun * 40 + fleePenalty;
+    const totalFinalScore = Math.max(0, Math.round(((base - penalty) + bonus + ballsBonus) * mult));
+
     completionDiv.innerHTML = `
     <div style="margin-bottom: 8px; font-size: 11px; font-weight: bold;">${type}</div>
     <div style="margin-bottom: 5px;">✓ Correct Answers: ${correctCount}/${totalQuestions} (${successRate}%)</div>
@@ -90,6 +98,7 @@ questions = window.QUESTIONS;
     <div style="margin-bottom: 5px;">Performance Bonus: +${bonus} points</div>
     ${ballsBonus > 0 ? `<div style="margin-bottom: 5px;">Balls Bonus: +${ballsBonus} points</div>` : ''}
     ${fleePenalty > 0 ? `<div style="margin-bottom: 5px;">Flee Penalty: -${fleePenalty} points</div>` : ''}
+    <div style="margin-bottom: 8px; font-size: 12px; font-weight: bold; color: #ff0080;">🏆 TOTAL SCORE: ${totalFinalScore} POINTS 🏆</div>
     <div style="color: #ff0080; font-weight: bold;">🎉 GAME COMPLETE! 🎉</div>
   `;
 
@@ -108,7 +117,6 @@ questions = window.QUESTIONS;
     let performanceGrade = "";
 
     if (questionsCompleted) {
-      // Performance grading system
       if (successRate >= 90) {
         performanceGrade = "PERFECT COMPLETION";
         completionBonus = 5000;
@@ -130,8 +138,6 @@ questions = window.QUESTIONS;
     }
 
     const ballsBonus = balls * 50;
-
-    // Flee penalty
     const fleePenalty = fleeCount * 100;
 
     const distance = score;
@@ -155,10 +161,9 @@ questions = window.QUESTIONS;
 
       const gameOverTitle = document.querySelector("#gameOver h2");
       if (gameOverTitle) {
-        // Color based on performance
-        let titleColor = "#00ff00"; // Green for good performance
-        if (successRate < 60) titleColor = "#ffaa00"; // Orange for fair
-        if (successRate < 40) titleColor = "#ff4444"; // Red for poor
+        let titleColor = "#00ff00";
+        if (successRate < 60) titleColor = "#ffaa00";
+        if (successRate < 40) titleColor = "#ff4444";
 
         gameOverTitle.textContent = performanceGrade;
         gameOverTitle.style.color = titleColor;
@@ -171,7 +176,8 @@ questions = window.QUESTIONS;
       document.getElementById("bestScoreVal").textContent = String(bestScoreVal);
     } catch (e) { }
 
-    showCompletionMessage(completionType, completionBonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount);
+    // TOTAL SCORE'u da gönder
+    showCompletionMessage(completionType, completionBonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount, runScore);
 
     renderCollectionPaged(dexEl);
     updateSendButtons();
@@ -2703,46 +2709,50 @@ questions = window.QUESTIONS;
     startOverBtn.addEventListener("click", () => {
       console.log("Start Over clicked - Complete reset");
 
-      gameOverEl.classList.remove("show");
-      if (corruptOverlay) corruptOverlay.classList.remove("show");
+      startOverBtn.disabled = true;
+      startOverBtn.textContent = "RESTARTING...";
 
-      collection.length = 0; // Array'i boşalt
-      localStorage.removeItem("angryflappy_collection");
-      saveCollection(collection);
+      setTimeout(() => {
+        gameOverEl.classList.remove("show");
+        if (corruptOverlay) corruptOverlay.classList.remove("show");
 
-      high = 0;
-      bestCaptInRun = 0;
+        collection.length = 0;
+        localStorage.removeItem("angryflappy_collection");
+        saveCollection(collection);
 
-      localStorage.removeItem("angryflappy_high");
-      localStorage.removeItem("angryflappy_bestcaprun");
-      localStorage.removeItem("angryflappy_bestscore");
+        high = 0;
+        bestCaptInRun = 0;
 
-      availableMonsters = monsters.slice();
-      collidedMonsterIds.length = 0;
-      answeredQuestionIds.length = 0;
-      selectedMonsterId = null;
-      answeredQuestionIds.length = 0;
-      correctlyAnsweredQuestionIds = [];
-      incorrectlyAnsweredQuestionIds = [];
-      fleeCount = 0;
+        localStorage.removeItem("angryflappy_high");
+        localStorage.removeItem("angryflappy_bestcaprun");
+        localStorage.removeItem("angryflappy_bestscore");
 
-      // Yeni oyun başlat
-      startNewGame();
+        availableMonsters = monsters.slice();
+        collidedMonsterIds.length = 0;
+        answeredQuestionIds.length = 0;
+        selectedMonsterId = null;
+        answeredQuestionIds.length = 0;
+        correctlyAnsweredQuestionIds = [];
+        incorrectlyAnsweredQuestionIds = [];
+        fleeCount = 0;
 
-      // UI'ları güncelle
-      try {
-        renderCollectionPaged(dexStart);
-        renderCollectionPaged(dexEl);
-        updateMonsterSelect(document.getElementById("monsterSelectStart"));
-      } catch (e) {
-        console.log("UI update error:", e);
-      }
+        startNewGame();
 
-      console.log("Complete game reset - All data cleared");
+        try {
+          renderCollectionPaged(dexStart);
+          renderCollectionPaged(dexEl);
+          updateMonsterSelect(document.getElementById("monsterSelectStart"));
+        } catch (e) {
+          console.log("UI update error:", e);
+        }
+
+        startOverBtn.disabled = false;
+        startOverBtn.textContent = "START OVER";
+
+        console.log("Complete game reset - All data cleared");
+      }, 500); 
     });
   }
-
-  // IIFE içinde (satır 2650 civarında, Start Over button'dan önce) bu fonksiyonu ekle:
 
   function startNewGame() {
     gameOverEl.classList.remove("show");
