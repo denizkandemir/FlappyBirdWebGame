@@ -378,34 +378,38 @@ const originalMonsters = monsters.slice();
   }
 
   function handleAutomaticCapture() {
+    console.log("=== AUTOMATIC CAPTURE CALLED ===", battle?.mon?.name);
+
     if (!battle) return;
 
     const id = battle.mon.id;
 
-    let existing = collection.find(item => {
-      if (typeof item === 'object' && item.id === id) return true;
-      if (typeof item === 'string' && item === id) return true;
-      return false;
-    });
+    // COLLECTION'DA ZATEN VAR MI KONTROL ET
+    let existing = collection.find(item =>
+      typeof item === 'object' && item !== null && item.id === id
+    );
 
     if (existing) {
-      if (typeof existing === 'string') {
-        const index = collection.indexOf(existing);
-        collection[index] = { id: existing, amount: 2 };
-        console.log(`${battle.mon.name} converted to object format with amount 2`);
-      } else if (typeof existing === 'object') {
-        existing.amount += 1;
-        console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
-      }
+      // Mevcut monster - amount arttır
+      existing.amount = (existing.amount || 1) + 1;
+      console.log(`${battle.mon.name} automatic capture - amount increased to ${existing.amount}`);
     } else {
+      // Yeni monster - object formatında ekle
       collection.push({ id, amount: 1 });
+      console.log(`${battle.mon.name} automatically captured for the first time`);
     }
 
+    // TEK SAVE ÇAĞRISI
+    console.log("Saving collection with", collection.length, "items");
     saveCollection(collection);
+
+    // RENDER SADECE 1 KERE
     try {
       renderCollectionPaged(dexStart);
       renderCollectionPaged(dexEl);
-    } catch (e) { }
+    } catch (e) {
+      console.log("Render error:", e);
+    }
 
     // Monster'ı ekrandan kaldır
     if (lastBattledMonster) {
@@ -424,35 +428,87 @@ const originalMonsters = monsters.slice();
     lives = activeUnit.hpMax;
     updateHUD();
 
-    captureHint.textContent = `Monster automatically captured! +${extraHp} HP`;
+    captureHint.textContent = `🏆 ${battle.mon.name} automatically captured! +${extraHp} HP 🏆`;
     captureHint.className = "hint capture-correct";
+    captureHint.style.fontSize = "16px";
+    captureHint.style.fontWeight = "bold";
+    captureHint.style.background = "linear-gradient(45deg, #ffd700, #ffaa00)";
+    captureHint.style.color = "#000";
+    captureHint.style.padding = "10px";
+    captureHint.style.borderRadius = "8px";
+    captureHint.style.textAlign = "center";
 
     setTimeout(() => {
-      endBattle(false, true); 
+      endBattle(false, true);
       setTimeout(() => {
         checkGameCompletion();
       }, 100);
-    }, 1500);
+    }, 4000);
   }
 
   function loadCollection() {
     try {
       const data = JSON.parse(localStorage.getItem("angryflappy_collection") || "[]");
-      if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
-        const converted = data.map(id => ({ id, amount: 1 }));
-        localStorage.setItem("angryflappy_collection", JSON.stringify(converted));
-        return converted;
-      }
-      return data;
+
+      // Basit return - manipulation yok
+      return Array.isArray(data) ? data : [];
+
     } catch (e) {
+      console.log("LoadCollection error:", e);
       return [];
     }
   }
-  function saveCollection(collection) {
-    localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
+  function saveCollection(coll) {
+    try {
+      localStorage.setItem("angryflappy_collection", JSON.stringify(coll));
+      collection = coll; // Global collection'ı da sync et
+      console.log("Collection saved:", coll.length, "items");
+    } catch (e) {
+      console.log("Save collection error:", e);
+    }
   }
 
-  collection = loadCollection();
+
+
+  function initializeCollection() {
+    try {
+      const raw = JSON.parse(localStorage.getItem("angryflappy_collection") || "[]");
+
+      if (!Array.isArray(raw) || raw.length === 0) {
+        collection = [];
+        return;
+      }
+
+      // Eğer string array ise 1 kere convert et
+      if (typeof raw[0] === 'string') {
+        const uniqueIds = [...new Set(raw)];
+        collection = uniqueIds.map(id => ({ id, amount: 1 }));
+        localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
+        console.log("Collection converted once:", collection);
+        return;
+      }
+
+      const merged = {};
+      for (const item of raw) {
+        if (typeof item === 'object' && item && item.id) {
+          if (!merged[item.id]) {
+            merged[item.id] = { id: item.id, amount: 0 };
+          }
+          merged[item.id].amount += (item.amount || 1);
+        }
+      }
+
+      collection = Object.values(merged);
+      localStorage.setItem("angryflappy_collection", JSON.stringify(collection));
+      console.log("Collection merged once:", collection);
+
+    } catch (e) {
+      console.log("Initialize collection error:", e);
+      collection = [];
+    }
+  }
+
+  initializeCollection();
 
   const startScreen = document.getElementById("startScreen");
   const sendBtnStart = document.getElementById("sendBtnStart");
@@ -727,7 +783,7 @@ const originalMonsters = monsters.slice();
         const amount = item.amount || 1;
 
         const [c, f, k] = id.split("-").map((n) => parseInt(n));
-        const monsterObj = monsters.find(m => m.id === id);
+        const monsterObj = originalMonsters.find(m => m.id === id);
         const name = monsterObj ? monsterObj.name : "Unknown";
         const hp = monsterObj ? (monsterObj.stats?.maxhp ?? monsterObj.stats?.hp ?? 1) : 1;
         const power = monsterObj ? (monsterObj.stats?.power ?? 1) : 1;
@@ -1423,7 +1479,7 @@ const originalMonsters = monsters.slice();
     }
 
     if (lastBattledMonster) {
-      const idx = monsters.indexOf(lastBattledMonster);
+      const idx = originalMonsters.indexOf(lastBattledMonster);
       if (idx !== -1) {
         lastBattledMonster.x = -9999;
         lastBattledMonster.y = -9999;
@@ -1915,6 +1971,8 @@ const originalMonsters = monsters.slice();
     if (pauseBtn) {
       pauseBtn.style.display = (state === "playing" && !isPaused) ? "block" : "none";
     }
+
+    monsters = monsters.filter((m) => m.x > -120);
 
     if (control.mode === "fly") {
       bird.vy += S.gravity * dt;
@@ -2511,7 +2569,9 @@ const originalMonsters = monsters.slice();
           anim.capture.t0 = now;
         }
       } else if (anim.capture.phase === "result") {
-        const text = anim.capture.success ? "Capture Successful" : "Capture Failed";
+        const isAutoCapture = battle && battle.hp <= 0;
+        const text = isAutoCapture ? "Automatic Capture!" :
+          anim.capture.success ? "Capture Successful!" : "Capture Failed!";
         ctx.save();
         ctx.font = "48px monospace";
         ctx.fillStyle = "#ffffff";
@@ -2526,13 +2586,12 @@ const originalMonsters = monsters.slice();
         if (now - anim.capture.t0 > 650) {
           if (anim.capture.success) {
             const id = battle.mon.id;
-            if (!collection.includes(id)) {
-              collection.push(id);
-              saveCollection(collection);
-              try {
-                renderCollectionPaged(dexStart);
-                renderCollectionPaged(dexEl);
-              } catch (e) { }
+            if (anim.capture.success) {
+              anim.capture.active = false;
+              showFleeAndEnd(false);
+            } else {
+              anim.capture.active = false;
+              if (Math.random() < 0.5) enemyAttack();
             }
             capturesRun++;
             if (capturesRun > bestCaptInRun) {
@@ -2631,11 +2690,24 @@ const originalMonsters = monsters.slice();
           lastBattledMonster.y = -9999;
         }
 
-        handleAutomaticCapture();
+        const pos = getBattlePositions();
+        anim.capture.active = true;
+        anim.capture.phase = "fly";
+        anim.capture.success = true; // %100 başarılı!
+        anim.capture.t0 = performance.now();
+        anim.capture.t1 = anim.capture.t0 + 520;
+        anim.capture.fromX = pos.playerScreenX + 20;
+        anim.capture.fromY = pos.playerScreenY - 30;
+        anim.capture.toX = pos.enemyBaseX - 10;
+        anim.capture.toY = pos.enemyBaseY - 10;
+
+        setTimeout(() => {
+          handleAutomaticCapture();
+        }, 2000);
         return;
       }
 
-      captureHint.textContent = "Correct! You attacked the monster.";
+      captureHint.textContent = "Correct! Attack!";
       captureHint.className = "hint capture-correct";
 
       setTimeout(() => {
@@ -2704,21 +2776,19 @@ const originalMonsters = monsters.slice();
         if (success) {
           const id = battle.mon.id;
 
-          let existing = collection.find(item => {
-            if (typeof item === 'object' && item.id === id) return true;
-            if (typeof item === 'string' && item === id) return true;
-            return false;
-          });
+          // COLLECTION'I KONTROL ET - Sadece object format'ı kontrol et
+          let existing = collection.find(item =>
+            typeof item === 'object' && item !== null && item.id === id
+          );
 
           if (existing) {
-            if (typeof existing === 'string') {
-              const index = collection.indexOf(existing);
-              collection[index] = { id: existing, amount: 2 }; // 1 + 1 = 2
-            } else if (typeof existing === 'object') {
-              existing.amount += 1;
-            }
+            // Mevcut monster - amount'ı arttır
+            existing.amount = (existing.amount || 1) + 1;
+            console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
           } else {
+            // Yeni monster - object formatında ekle
             collection.push({ id, amount: 1 });
+            console.log(`${battle.mon.name} captured for the first time`);
           }
 
           saveCollection(collection);
@@ -2743,19 +2813,27 @@ const originalMonsters = monsters.slice();
           lives = activeUnit.hpMax;
           updateHUD();
 
-          captureHint.textContent = `Monster captured! +${extraHp} HP`;
+          captureHint.textContent = `🎉 ${battle.mon.name} captured! +${extraHp} HP 🎉`;
           captureHint.className = "hint capture-correct";
+          captureHint.style.fontSize = "16px";
+          captureHint.style.fontWeight = "bold";
+          captureHint.style.background = "linear-gradient(45deg, #00ff00, #00ffff)";
+          captureHint.style.color = "#000";
+          captureHint.style.padding = "10px";
+          captureHint.style.borderRadius = "8px";
+          captureHint.style.textAlign = "center";
 
           setTimeout(() => {
             endBattle(false, true);
             setTimeout(() => {
               checkGameCompletion();
             }, 100);
-          }, 1500);
+          }, 3000);
 
         } else {
           captureHint.textContent = "Capture failed!";
           captureHint.className = "hint capture-wrong";
+
           if (lastBattledMonster) {
             lastBattledMonster.x = -9999;
             lastBattledMonster.y = -9999;
@@ -2768,7 +2846,6 @@ const originalMonsters = monsters.slice();
       }
     }, 500);
   };
-
   function enemyAttack() {
     if (!battle) return;
     anim.monsterLungeT = performance.now() + 220;
@@ -2796,7 +2873,7 @@ const originalMonsters = monsters.slice();
     container.innerHTML = "";
 
     // FRESH LOAD - her rendering'de collection'ı yenile
-    const list = loadCollection().slice();
+    const list = collection.slice();
 
     const scope = container.closest(".panel") || document;
     const bySel = scope.querySelector("#sortByStart, #sortBy");
@@ -2926,6 +3003,7 @@ const originalMonsters = monsters.slice();
         if (corruptOverlay) corruptOverlay.classList.remove("show");
 
         collection.length = 0;
+        collection = [];
         localStorage.removeItem("angryflappy_collection");
         saveCollection(collection);
 
