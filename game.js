@@ -367,10 +367,72 @@ const originalMonsters = monsters.slice();
     // TOTAL SCORE'u da gönder
     showCompletionMessage(completionType, completionBonus, ballsBonus, fleePenalty, correctCount, incorrectCount, fleeCount, runScore);
 
-    renderCollectionPaged(dexEl);
+    try {
+      collection = loadCollection();
+      renderCollectionPaged(dexEl);
+    } catch (e) {
+    }
     updateSendButtons();
 
     gameOverEl.classList.add("show");
+  }
+
+  function handleAutomaticCapture() {
+    if (!battle) return;
+
+    const id = battle.mon.id;
+
+    let existing = collection.find(item => {
+      if (typeof item === 'object' && item.id === id) return true;
+      if (typeof item === 'string' && item === id) return true;
+      return false;
+    });
+
+    if (existing) {
+      if (typeof existing === 'string') {
+        const index = collection.indexOf(existing);
+        collection[index] = { id: existing, amount: 2 };
+        console.log(`${battle.mon.name} converted to object format with amount 2`);
+      } else if (typeof existing === 'object') {
+        existing.amount += 1;
+        console.log(`${battle.mon.name} amount increased to ${existing.amount}`);
+      }
+    } else {
+      collection.push({ id, amount: 1 });
+    }
+
+    saveCollection(collection);
+    try {
+      renderCollectionPaged(dexStart);
+      renderCollectionPaged(dexEl);
+    } catch (e) { }
+
+    // Monster'ı ekrandan kaldır
+    if (lastBattledMonster) {
+      lastBattledMonster.x = -9999;
+      lastBattledMonster.y = -9999;
+    }
+
+    capturesRun++;
+    if (capturesRun > bestCaptInRun) {
+      bestCaptInRun = capturesRun;
+      localStorage.setItem("angryflappy_bestcaprun", String(bestCaptInRun));
+    }
+
+    const extraHp = Math.floor(Math.random() * 2) + 1;
+    activeUnit.hpMax += extraHp;
+    lives = activeUnit.hpMax;
+    updateHUD();
+
+    captureHint.textContent = `Monster automatically captured! +${extraHp} HP`;
+    captureHint.className = "hint capture-correct";
+
+    setTimeout(() => {
+      endBattle(false, true); 
+      setTimeout(() => {
+        checkGameCompletion();
+      }, 100);
+    }, 1500);
   }
 
   function loadCollection() {
@@ -1143,12 +1205,9 @@ const originalMonsters = monsters.slice();
 
   // ---------- Monsters ----------
   function createMonsterCandidate() {
-    const candidates = availableMonsters.filter(m => !collidedMonsterIds.includes(m.id));
-    if (candidates.length === 0) {
-      return null;
-    }
-    const idx = Math.floor(rng() * candidates.length);
-    const m = candidates[idx];
+
+    const idx = Math.floor(rng() * originalMonsters.length);
+    const m = originalMonsters[idx];
 
     let x = W + 50;
     let y;
@@ -1986,7 +2045,6 @@ const originalMonsters = monsters.slice();
       }
       if (startBattleIfCollision(m)) break;
     }
-    monsters = monsters.filter((m) => m.x > -120 && m.y < H + 220);
 
     // Platform top landing reset for player ground mode
     if (control.mode === "ground") {
@@ -2257,10 +2315,17 @@ const originalMonsters = monsters.slice();
         battleOverlay.classList.remove("show");
       } catch (e) { }
     }
-    renderCollectionPaged(dexEl);
+
+    try {
+      collection = loadCollection(); // Fresh load
+      renderCollectionPaged(dexEl);
+    } catch (e) {
+    }
+
     updateSendButtons();
     gameOverEl.classList.add("show");
   }
+
   // ---------- Rendering ----------
   function drawWorldNormal() {
     worldHelpers.synthParallaxBG();
@@ -2566,7 +2631,7 @@ const originalMonsters = monsters.slice();
           lastBattledMonster.y = -9999;
         }
 
-        handleCaptureSuccess();
+        handleAutomaticCapture();
         return;
       }
 
@@ -2729,7 +2794,10 @@ const originalMonsters = monsters.slice();
   // ---------- Collection rendering ----------
   function renderCollectionPaged(container) {
     container.innerHTML = "";
+
+    // FRESH LOAD - her rendering'de collection'ı yenile
     const list = loadCollection().slice();
+
     const scope = container.closest(".panel") || document;
     const bySel = scope.querySelector("#sortByStart, #sortBy");
     const dirSel = scope.querySelector("#sortDirStart, #sortDir");
@@ -2744,9 +2812,8 @@ const originalMonsters = monsters.slice();
           const id = item.id || item; // Geriye uyumluluk
           const amount = item.amount || 1;
 
-          const monsterObj = monsters.find(m => m.id === id);
+          const monsterObj = originalMonsters.find(m => m.id === id);
           if (!monsterObj) {
-            console.warn("Monster not found for ID:", id);
             return null;
           }
 
@@ -2777,6 +2844,7 @@ const originalMonsters = monsters.slice();
     function renderAll() {
       container.innerHTML = "";
       const arr = computeList();
+
       if (arr.length === 0) {
         const p = document.createElement("p");
         p.textContent = "You have not captured any monsters yet.";
@@ -2822,6 +2890,7 @@ const originalMonsters = monsters.slice();
           updateSendButtons();
         });
       }
+
     }
 
     renderAll();
