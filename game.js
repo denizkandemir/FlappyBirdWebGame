@@ -390,7 +390,6 @@ const originalMonsters = monsters.slice();
     );
 
     if (existing) {
-      // Mevcut monster - amount arttır
       existing.amount = (existing.amount || 1) + 1;
       console.log(`${battle.mon.name} automatic capture - amount increased to ${existing.amount}`);
     } else {
@@ -443,7 +442,7 @@ const originalMonsters = monsters.slice();
       setTimeout(() => {
         checkGameCompletion();
       }, 100);
-    }, 4000);
+    }, 1500);
   }
 
   function loadCollection() {
@@ -658,9 +657,17 @@ const originalMonsters = monsters.slice();
       endBattle(false, false);
     }
 
-    state = "start";
-    startScreen.classList.add("show");
-    gameOverEl.classList.remove("show");
+    state = "gameover";
+    startScreen.classList.remove("show");
+    gameOverEl.classList.add("show");
+
+    try {
+      renderCollectionPaged(dexEl);
+    } catch (e) {
+      console.log("Collection render error:", e);
+    }
+
+    updateSendButtons();
 
     const hudWrap = document.getElementById("hudWrap");
     if (hudWrap) {
@@ -1514,9 +1521,10 @@ const originalMonsters = monsters.slice();
     captureAttemptsInBattle = 0;
 
     state = "playing";
-    resumeAt = performance.now() + 1000;
 
-    bird.invulnUntil = Date.now() + 2000;
+    // resumeAt = performance.now() + 50;
+
+    bird.invulnUntil = Date.now() + 600;
 
     if (pauseBtn && state === "playing") {
       pauseBtn.style.display = "block";
@@ -2736,10 +2744,18 @@ const originalMonsters = monsters.slice();
   fleeBtn.addEventListener("click", () => {
     ++lostBattlesRun;
     fleeCount++;
+    if (lastBattledMonster) {
+      lastBattledMonster.x = -9999;
+      lastBattledMonster.y = -9999;
+    }
     showFleeAndEnd(true);
   });
 
   function getCaptureRate(mon, hp, playerPower) {
+    if (hp <= 0) {
+      return 100;
+    }
+
     let rate = (100 - ((hp * 10) + (playerPower * 5)));
     rate = Math.max(0, rate);
     return parseInt(rate, 10);
@@ -2828,7 +2844,7 @@ const originalMonsters = monsters.slice();
             setTimeout(() => {
               checkGameCompletion();
             }, 100);
-          }, 3000);
+          }, 1500);
 
         } else {
           captureHint.textContent = "Capture failed!";
