@@ -52,6 +52,18 @@ body {
     --base-font-size: 12px;
     --scale-factor: 0.7;
   }
+
+  body {
+    overflow-y: auto;
+  }
+
+  canvas {
+    overflow-y: auto;
+  }
+
+   .battle-overlay {
+    overflow-y: auto;
+   }
 }
 
 body {
